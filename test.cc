@@ -161,7 +161,10 @@ bool try_it(int n, int k, int t)
                ceil_lg(nck), t);
         return false;
     }
-    if (t >= n-1) {
+    if (k == 0 || k == n) {
+        printf("We know all the sheep %s wolves, so we don't need any tests!\n", (k == 0) ? "are not" : "are");
+        return true;
+    } else if (t >= n-1) {
         printf("We can obviously test %d sheep one-by-one using %d >= %d-1 blood tests!\n", n, t, n);
         return true;
     } else if (k == 1) {
@@ -194,13 +197,32 @@ bool try_it(int n, int k, int t)
 
 int main(int argc, char **argv)
 {
-    assert(argc == 4);
-    int n = atoi(argv[1]);
-    int k = atoi(argv[2]);
-    int t = atoi(argv[3]);
-    assert(n >= k && k >= 0);
-    assert(t >= 0);
-    assert(t < sizeof(Int)*8);
+    if (argc == 4) {
+        int n = atoi(argv[1]);
+        int k = atoi(argv[2]);
+        int t = atoi(argv[3]);
+        assert(n >= k && k >= 0);
+        assert(t >= 0);
+        assert(t < sizeof(Int)*8);
 
-    try_it(n, k, t);
+        try_it(n, k, t);
+    } else {
+        std::vector<int> triangle;
+        for (int n = 0; n <= 10; ++n) {
+            triangle.push_back(0);
+            for (int k = 0; k <= n; ++k) {
+                for (int t = triangle[k]; t <= n-1; ++t) {
+                    bool success = try_it(n, k, t);
+                    if (success) {
+                        //printf("SUCCESS WITH n=%d, k=%d REQUIRES t=%d\n", n, k, t);
+                        triangle[k] = t;
+                        break;
+                    }
+                }
+            }
+            printf("SUCCESS: ");
+            for (int elt : triangle) printf(" %2d", elt);
+            printf("\n");
+        }
+    }
 }
