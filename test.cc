@@ -162,7 +162,7 @@ bool try_it(int n, int k, int t)
         return false;
     }
     if (k == 0 || k == n) {
-        printf("We know all the sheep %s wolves, so we don't need any tests!\n", (k == 0) ? "are not" : "are");
+        printf("We know %s of the sheep are wolves, so we don't need any tests!\n", (k == 0) ? "none" : "all");
         return true;
     } else if (t >= n-1) {
         printf("We can obviously test %d sheep one-by-one using %d >= %d-1 blood tests!\n", n, t, n);
@@ -210,8 +210,26 @@ int main(int argc, char **argv)
 
         try_it(n, k, t);
     } else {
+        int n = (argc == 2) ? atoi(argv[1]) : 0;
         std::vector<int> triangle;
-        for (int n = 0; n <= 10; ++n) {
+        switch (n - 1) {
+            case -1: triangle = {}; break;
+            case  0: triangle = {0}; break;
+            case  1: triangle = {0,0}; break;
+            case  2: triangle = {0,1,0}; break;
+            case  3: triangle = {0,2,2,0}; break;
+            case  4: triangle = {0,2,3,3,0}; break;
+            case  5: triangle = {0,3,4,4,4,0}; break;
+            case  6: triangle = {0,3,5,5,5,5,0}; break;
+            case  7: triangle = {0,3,6,6,6,6,6,0}; break;
+            case  8: triangle = {0,3,6,7,7,7,7,7,0}; break;
+            case  9: triangle = {0,4,7,8,8,8,8,8,8,0}; break;
+            default: {
+                printf("Precomputed triangle rows are known only up to n=9.\n");
+                exit(1);
+            }
+        }
+        for ( ; true; ++n) {
             triangle.push_back(0);
             for (int k = 0; k <= n; ++k) {
                 for (int t = triangle[k]; t <= n-1; ++t) {
