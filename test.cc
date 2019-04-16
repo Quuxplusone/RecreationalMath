@@ -167,6 +167,9 @@ bool try_it(int n, int k, int t)
     } else if (t >= n-1) {
         printf("We can obviously test %d sheep one-by-one using %d >= %d-1 blood tests!\n", n, t, n);
         return true;
+    } else if (k == n-1) {
+        printf("Sorry, finding the one real sheep among %d wolves requires %d-1 > %d tests.\n", n, n, t);
+        return false;
     } else if (k == 1) {
         assert(ceil_lg(n) <= t);
         printf("We can test %d sheep for a lone wolf using the binary approach, in %d <= %d blood tests.\n", n, ceil_lg(n), t);
