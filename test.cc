@@ -77,12 +77,18 @@ void print_solution(const std::vector<Int>& solution, int n, int t, const std::v
     throw "done";
 }
 
-void attempt_testing(std::vector<Candidate>& cands, std::vector<Int>& solution, int n, int i, int t) {
-
-    if (i >= t) {
-        assert(false);
+static inline
+Int increment(Int m, int i) {
+    if (i == 0) {
+        m <<= 1;
     }
-    for (Int m = 1; m < (Int(1) << n); ++m) {
+    ++m;
+    return m;
+}
+
+void attempt_testing(std::vector<Candidate>& cands, std::vector<Int>& solution, int n, int i, int t) {
+    assert(i < t);
+    for (Int m = 1; m < (Int(1) << n) - 1; m = increment(m, i)) {
         // Suppose the i'th test (out of t tests total) combines blood from these sheep.
         // What will the result of the test be, for each candidate arrangement of wolves?
         for (auto&& cand : cands) {
