@@ -24,26 +24,25 @@ int ceil_lg(Int value) {
 }
 
 struct Candidate {
-    std::vector<signed char> is_wolf;  // size == n, has exactly k nonzero elements
+    Int is_wolf;  // n bits, has exactly k nonzero bits
     Int test_results;  // t bits, each representing the result of a test
-    explicit Candidate(std::vector<signed char> v) : is_wolf(std::move(v)) {}
+    explicit Candidate(Int v) : is_wolf(v) {}
 };
 
 std::vector<Candidate> make_candidates(int n, int k) {
     assert(n >= 0);
     assert(k >= 0);
     if (k == 0) {
-        return std::vector<Candidate>{ Candidate(std::vector<signed char>(n, 0)) };
+        return std::vector<Candidate>{ Candidate(0) };
     } else if (k > n) {
         return std::vector<Candidate>{};
     } else {
         std::vector<Candidate> a = make_candidates(n-1, k);
         std::vector<Candidate> b = make_candidates(n-1, k-1);
-        for (auto&& cand : a) cand.is_wolf.push_back(0);
-        for (auto&& cand : b) cand.is_wolf.push_back(1);
+        for (auto&& cand : a) cand.is_wolf <<= 1;
+        for (auto&& cand : b) cand.is_wolf = (cand.is_wolf << 1) | 1;
         a.reserve(a.size() + b.size());
         for (auto&& cand : b) { a.push_back(std::move(cand)); }
-        for (auto&& cand : a) { assert(cand.is_wolf.size() == n); }
         return a;
     }
 }
@@ -64,8 +63,9 @@ void print_solution(const std::vector<Int>& solution, int n, int t, const std::v
     printf("The test results for each arrangement of wolves are:\n");
     for (auto&& cand : cands) {
             printf("Candidate wolves:");
-            for (signed char x : cand.is_wolf) {
-                printf(" %d", x);
+            for (int i=0; i < n; ++i) {
+                bool sheep_is_wolf = (cand.is_wolf & (Int(1) << i)) != 0;
+                printf(" %d", sheep_is_wolf ? 1 : 0);
             }
             printf("   Test results: ");
             for (int i=0; i < t; ++i) {
@@ -87,14 +87,8 @@ void attempt_testing(std::vector<Candidate>& cands, std::vector<Int>& solution, 
         // What will the result of the test be, for each candidate arrangement of wolves?
         for (auto&& cand : cands) {
             Int test_result = Int(0);
-            for (int sheep = 0; sheep < n; ++sheep) {
-                bool this_sheep_is_used = ((m & (Int(1) << sheep)) != 0);
-                if (this_sheep_is_used) {
-                    if (cand.is_wolf[sheep]) {
-                        test_result = Int(1);
-                        break;
-                    }
-                }
+            if (m & cand.is_wolf) {
+                test_result = Int(1);
             }
             cand.test_results &= (Int(1) << i) - 1;   // clear all bits [i..t)
             cand.test_results |= (test_result << i);  // set bit [i] appropriately
@@ -158,8 +152,9 @@ bool try_it(int n, int k, int t)
 #if 1
         for (auto&& cand : cands) {
             printf("Candidate wolves:");
-            for (signed char x : cand.is_wolf) {
-                printf(" %d", x);
+            for (int i=0; i < n; ++i) {
+                bool sheep_is_wolf = (cand.is_wolf & (Int(1) << i)) != 0;
+                printf(" %d", sheep_is_wolf ? 1 : 0);
             }
             printf("\n");
         }
