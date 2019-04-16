@@ -86,9 +86,25 @@ Int increment(Int m, int i) {
     return m;
 }
 
+static inline
+bool is_power_of_2_minus_1(Int x) {
+    Int y = x;
+    ++y;
+    return (y & x) == 0;
+}
+
 void attempt_testing(std::vector<Candidate>& cands, std::vector<Int>& solution, int n, int i, int t) {
     assert(i < t);
-    for (Int m = 1; m < (Int(1) << n) - 1; m = increment(m, i)) {
+    Int mask_so_far = Int(0);
+    for (int j=0; j < i; ++j) mask_so_far |= solution[j];
+    for (Int m = (i == 0) ? 1 : (solution[i-1] + 1); m < (Int(1) << n) - 1; m = increment(m, i)) {
+
+        if (!is_power_of_2_minus_1(mask_so_far | m)) {
+            // Testing the 6th animal when we haven't touched the 5th animal yet is pointless.
+            // Without loss of generality we can assume the animals are introduced in order.
+            continue;
+        }
+
         // Suppose the i'th test (out of t tests total) combines blood from these sheep.
         // What will the result of the test be, for each candidate arrangement of wolves?
         for (auto&& cand : cands) {
