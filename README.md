@@ -57,6 +57,14 @@ When brute-forcing solutions, here's what I think I know about the search space.
     tests on (3,2,1,0) *followed by* (4,3,1), that's fine. By forcing the order,
     we avoid double-counting.
 
+- We know that ultimately we must use blood from at least $n-1$ different sheep.
+    (If we omitted two sheep from testing, then it might happen that one was a wolf,
+    and we wouldn't know which one.) By the pigeonhole principle, at least one of
+    our $t$ tests must use blood from at least $\ceil{(n-1) / t}$ sheep.
+    Without loss of generality, we can assume that that test is the first test.
+    We can apply this logic at each stage of testing, with respect to the $t - i$
+    remaining tests and the $n - m$ remaining sheep.
+
 - Consider all $(n\choose k)$ arrangements of wolves among our sheep.
     If, after some sequence of $i$ tests, we see that our tests so far would have
     failed to distinguish between $x > 2^{(t - i)}$ different possible arrangements of

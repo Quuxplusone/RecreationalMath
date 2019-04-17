@@ -23,6 +23,16 @@ int ceil_lg(Int value) {
     return r;
 }
 
+int popcount(Int value) {
+    Int bit = 1;
+    int result = 0;
+    while (bit <= value) {
+        if (value & bit) ++result;
+        bit <<= 1;
+    }
+    return result;
+}
+
 struct Candidate {
     Int is_wolf;  // n bits, has exactly k nonzero bits
     Int test_results;  // t bits, each representing the result of a test
@@ -97,11 +107,23 @@ void attempt_testing(std::vector<Candidate>& cands, std::vector<Int>& solution, 
     assert(i < t);
     Int mask_so_far = Int(0);
     for (int j=0; j < i; ++j) mask_so_far |= solution[j];
-    for (Int m = (i == 0) ? 1 : (solution[i-1] + 1); m < (Int(1) << n) - 1; m = increment(m, i)) {
+
+    int remaining_pigeons = (n - 1) - popcount(mask_so_far);
+    int remaining_holes = (t - i);
+    int min_new_pigeons_in_this_hole = (remaining_pigeons + (remaining_holes - 1)) / remaining_holes;
+    // By the pigeonhole principle, at least one of the tests we have left to run must
+    // involve AT LEAST this many yet-to-be-tested sheep. Without loss of generality,
+    // we can assume that that test is the very next test.
+
+    Int starting_m = (i == 0) ? (Int(1) << min_new_pigeons_in_this_hole) - 1 : solution[i-1] + 1;
+    for (Int m = starting_m; m < (Int(1) << n) - 1; m = increment(m, i)) {
 
         if (!is_power_of_2_minus_1(mask_so_far | m)) {
             // Testing the 6th animal when we haven't touched the 5th animal yet is pointless.
             // Without loss of generality we can assume the animals are introduced in order.
+            continue;
+        }
+        if (popcount(m & ~mask_so_far) < min_new_pigeons_in_this_hole) {
             continue;
         }
 
