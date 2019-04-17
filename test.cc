@@ -246,8 +246,9 @@ int main(int argc, char **argv)
             case  7: triangle = {0,3,6,6,6,6,6,0}; break;
             case  8: triangle = {0,3,6,7,7,7,7,7,0}; break;
             case  9: triangle = {0,4,7,8,8,8,8,8,8,0}; break;
+            case 10: triangle = {0,4,7,9,9,9,9,9,9,9,0}; break;
             default: {
-                printf("Precomputed triangle rows are known only up to n=9.\n");
+                printf("Precomputed triangle rows are known only up to n=10.\n");
                 exit(1);
             }
         }
