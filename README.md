@@ -109,5 +109,6 @@ Here's what I know about the resulting sequence:
     n=8   0  3  6  7  7  7  7  7  0
     n=9   0  4  7  8  8  8  8  8  8  0
     n=10  0  4  7  9  9  9  9  9  9  9  0
+    n=11  0  . 8?  .  .  .  .  .  .  . 10  0
 
 That's as many rows as I've completed.

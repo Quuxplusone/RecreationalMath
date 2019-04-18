@@ -1,20 +1,22 @@
+
 #include <algorithm>
 #include <assert.h>
 #include <map>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string>
 #include <vector>
+#include "wolves.h"
 
 using Int = unsigned long long;
 
-Int choose(int n, int k) {
+static Int choose(int n, int k) {
     if (k > n) return Int(0);
     if (k == 0 || k == n) return Int(1);
     if (k == 1 || k == n-1) return Int(n);
     return choose(n-1, k) + choose(n-1, k-1);
 }
 
+static inline
 int ceil_lg(Int value) {
     Int r = 0;
     while (value > (Int(1) << r)) {
@@ -23,6 +25,7 @@ int ceil_lg(Int value) {
     return r;
 }
 
+static inline
 int popcount(Int value) {
     Int bit = 1;
     int result = 0;
@@ -33,13 +36,41 @@ int popcount(Int value) {
     return result;
 }
 
+static inline
+bool is_power_of_2_minus_1(Int x) {
+    Int y = x;
+    ++y;
+    return (y & x) == 0;
+}
+
+static std::string format(const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    char buffer[100];
+    int len_without_nul = vsnprintf(buffer, sizeof buffer, fmt, ap);
+    std::string result;
+    if (len_without_nul < sizeof buffer) {
+        result = buffer;
+    } else {
+        va_end(ap);
+        va_start(ap, fmt);
+        result.resize(len_without_nul + 1);
+        int n = vsnprintf(&result[0], result.size(), fmt, ap);
+        assert(n == len_without_nul);
+        result.resize(n);
+        return result;
+    }
+    va_end(ap);
+    return result;
+}
+
 struct Candidate {
     Int is_wolf;  // n bits, has exactly k nonzero bits
     Int test_results;  // t bits, each representing the result of a test
     explicit Candidate(Int v) : is_wolf(v) {}
 };
 
-std::vector<Candidate> make_candidates(int n, int k) {
+static std::vector<Candidate> make_candidates(int n, int k) {
     assert(n >= 0);
     assert(k >= 0);
     if (k == 0) {
@@ -57,34 +88,35 @@ std::vector<Candidate> make_candidates(int n, int k) {
     }
 }
 
-void print_solution(const std::vector<Int>& solution, int n, int t, const std::vector<Candidate>& cands)
+static void report_solution(const std::vector<Int>& solution, int n, int t, const std::vector<Candidate>& cands)
 {
-    printf("Awesome, I think I found a solution using %d blood tests!\n", t);
-    printf("  My %d tests use blood from the following sheep:\n", t);
+    std::string message;
+    message += format("Awesome, I think I found a solution using %d blood tests!\n", t);
+    message += format("  My %d tests use blood from the following sheep:\n", t);
     for (int i = 0; i < t; ++i) {
-        printf("  %d. ", i+1);
+        message += format("  %d.%s", i+1, (i >= 9) ? "" : " ");
         auto m = solution[i];
         for (int sheep = 0; sheep < n; ++sheep) {
             bool this_sheep_is_used = ((m & (Int(1) << sheep)) != 0);
-            printf(" %c", this_sheep_is_used ? 'T' : '.');
+            message += format(" %c", this_sheep_is_used ? 'T' : '.');
         }
-        printf("\n");
+        message += format("\n");
     }
-    printf("The test results for each arrangement of wolves are:\n");
+    message += format("The test results for each arrangement of wolves are:\n");
     for (auto&& cand : cands) {
-            printf("Candidate wolves:");
+            message += format("Candidate wolves:");
             for (int i=0; i < n; ++i) {
                 bool sheep_is_wolf = (cand.is_wolf & (Int(1) << i)) != 0;
-                printf(" %d", sheep_is_wolf ? 1 : 0);
+                message += format(" %d", sheep_is_wolf ? 1 : 0);
             }
-            printf("   Test results: ");
+            message += format("   Test results: ");
             for (int i=0; i < t; ++i) {
                 bool test_was_positive = (cand.test_results & (Int(1) << i)) != 0;
-                printf(" %c", test_was_positive ? '+' : '-');
+                message += format(" %c", test_was_positive ? '+' : '-');
             }
-            printf("\n");
+            message += format("\n");
     }
-    throw "done";
+    throw NktResult(true, message);
 }
 
 static inline
@@ -96,14 +128,7 @@ Int increment(Int m, int i) {
     return m;
 }
 
-static inline
-bool is_power_of_2_minus_1(Int x) {
-    Int y = x;
-    ++y;
-    return (y & x) == 0;
-}
-
-void attempt_testing(std::vector<Candidate>& cands, std::vector<Int>& solution, int n, int i, int t) {
+static void attempt_testing(std::vector<Candidate>& cands, std::vector<Int>& solution, int n, int i, int t) {
     assert(i < t);
     Int mask_so_far = Int(0);
     for (int j=0; j < i; ++j) mask_so_far |= solution[j];
@@ -165,7 +190,7 @@ void attempt_testing(std::vector<Candidate>& cands, std::vector<Int>& solution, 
             // well shoot, reject
         } else if (these_tests_are_sufficient) {
             solution[i] = m;
-            print_solution(solution, n, i+1, cands);
+            report_solution(solution, n, i+1, cands);
         } else {
             solution[i] = m;
             attempt_testing(cands, solution, n, i+1, t);
@@ -173,29 +198,40 @@ void attempt_testing(std::vector<Candidate>& cands, std::vector<Int>& solution, 
     }
 }
 
-bool try_it(int n, int k, int t)
+NktResult solve_wolves(int n, int k, int t)
 {
     // k wolves hiding among n sheep, given t blood tests
+
+    assert(n >= k && k >= 0);
+    assert(t >= 0);
+    assert(t < sizeof(Int)*8);
+
     Int nck = choose(n, k);
     if (ceil_lg(nck) > t) {
-        printf("Sorry, information theory tells us that distinguishing %s possibilities requires %d > %d tests.\n",
-               std::to_string(nck).c_str(),
-               ceil_lg(nck), t);
-        return false;
-    }
-    if (k == 0 || k == n) {
-        printf("We know %s of the sheep are wolves, so we don't need any tests!\n", (k == 0) ? "none" : "all");
-        return true;
+        return NktResult(false,
+            format(
+                "Sorry, information theory tells us that distinguishing %s possibilities requires %d > %d tests.\n",
+                std::to_string(nck).c_str(),
+                ceil_lg(nck), t
+            )
+        );
+    } else if (k == 0 || k == n) {
+        return NktResult(true,
+            format("We know %s of the sheep are wolves, so we don't need any tests!\n", (k == 0) ? "none" : "all")
+        );
     } else if (t >= n-1) {
-        printf("We can obviously test %d sheep one-by-one using %d >= %d-1 blood tests!\n", n, t, n);
-        return true;
+        return NktResult(true,
+            format("We can obviously test %d sheep one-by-one using %d >= %d-1 blood tests!\n", n, t, n)
+        );
     } else if (k == n-1) {
-        printf("Sorry, finding the one real sheep among %d wolves requires %d-1 > %d tests.\n", n, n, t);
-        return false;
+        return NktResult(false,
+            format("Sorry, finding the one real sheep among %d wolves requires %d-1 > %d tests.\n", n, n, t)
+        );
     } else if (k == 1) {
         assert(ceil_lg(n) <= t);
-        printf("We can test %d sheep for a lone wolf using the binary approach, in %d <= %d blood tests.\n", n, ceil_lg(n), t);
-        return true;
+        return NktResult(true,
+            format("We can test %d sheep for a lone wolf using the binary approach, in %d <= %d blood tests.\n", n, ceil_lg(n), t)
+        );
     } else {
         // Okay, we have to do it for real.
         std::vector<Candidate> cands = make_candidates(n, k);
@@ -212,61 +248,12 @@ bool try_it(int n, int k, int t)
         std::vector<Int> solution(t);
         try {
             attempt_testing(cands, solution, n, 0, t);
-        } catch (const char *done) {
-            return true;
+        } catch (const NktResult& result) {
+            assert(result.success == true);
+            return result;
         }
-        printf("I believe it's impossible to detect %d wolves among %d sheep in only %d tests.\n", k, n, t);
-        return false;
-    }
-}
-
-int main(int argc, char **argv)
-{
-    if (argc == 4) {
-        int n = atoi(argv[1]);
-        int k = atoi(argv[2]);
-        int t = atoi(argv[3]);
-        assert(n >= k && k >= 0);
-        assert(t >= 0);
-        assert(t < sizeof(Int)*8);
-
-        try_it(n, k, t);
-    } else {
-        int n = (argc == 2) ? atoi(argv[1]) : 0;
-        std::vector<int> triangle;
-        switch (n - 1) {
-            case -1: triangle = {}; break;
-            case  0: triangle = {0}; break;
-            case  1: triangle = {0,0}; break;
-            case  2: triangle = {0,1,0}; break;
-            case  3: triangle = {0,2,2,0}; break;
-            case  4: triangle = {0,2,3,3,0}; break;
-            case  5: triangle = {0,3,4,4,4,0}; break;
-            case  6: triangle = {0,3,5,5,5,5,0}; break;
-            case  7: triangle = {0,3,6,6,6,6,6,0}; break;
-            case  8: triangle = {0,3,6,7,7,7,7,7,0}; break;
-            case  9: triangle = {0,4,7,8,8,8,8,8,8,0}; break;
-            case 10: triangle = {0,4,7,9,9,9,9,9,9,9,0}; break;
-            default: {
-                printf("Precomputed triangle rows are known only up to n=10.\n");
-                exit(1);
-            }
-        }
-        for ( ; true; ++n) {
-            triangle.push_back(0);
-            for (int k = 0; k <= n; ++k) {
-                for (int t = triangle[k]; t <= n-1; ++t) {
-                    bool success = try_it(n, k, t);
-                    if (success) {
-                        //printf("SUCCESS WITH n=%d, k=%d REQUIRES t=%d\n", n, k, t);
-                        triangle[k] = t;
-                        break;
-                    }
-                }
-            }
-            printf("SUCCESS: ");
-            for (int elt : triangle) printf(" %2d", elt);
-            printf("\n");
-        }
+        return NktResult(false,
+            format("I believe it's impossible to detect %d wolves among %d sheep in only %d tests.\n", k, n, t)
+        );
     }
 }
