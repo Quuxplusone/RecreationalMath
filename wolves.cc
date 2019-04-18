@@ -235,7 +235,7 @@ NktResult solve_wolves(int n, int k, int t)
     } else {
         // Okay, we have to do it for real.
         std::vector<Candidate> cands = make_candidates(n, k);
-#if 1
+#if PRINT_CANDIDATE_WOLVES
         for (auto&& cand : cands) {
             printf("Candidate wolves:");
             for (int i=0; i < n; ++i) {
