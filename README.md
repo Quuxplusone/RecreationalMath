@@ -79,9 +79,27 @@ Here's what I know about the resulting sequence:
     we can solve $(n, k)$ by simply _introducing an extra innocent sheep,_
     producing an instance of $(n+1, k)$, which we know how to solve in $t$ tests.
     Therefore the _optimal_ solution for $(n, k)$ cannot possibly be worse than
-    the optimal solution for $(n+1, k)$ (although it might be better).
+    the optimal solution for $(n+1, k)$ (although it can be better).
 
-- It appears that $t(n, k) \le t(n, k+1)$, but I have not seen how to prove this yet.
+- We know $t(n, k) \le t(n, k+1)$ when $k \le n-2$. If we have a working solution $t(n, k+1)$, then
+    we can run that same series of tests on $(n, k)$. Suppose (for the sake of contradiction)
+    that series of tests fails to distinguish two different arrangements of $k$ wolves —
+    call those arrangements $A$ and $B$. Now produce two different arrangements of $k+1$ wolves
+    by the following procedure: Choose two innocent sheep in $A$. If either of them is also
+    innocent in $B$, then replace that animal with a wolf in both $A'$ and $B'$ and stop.
+    Otherwise, you have chosen two innocent sheep in $A$ which are wolves in $B$; correspondingly
+    there must be at least two innocent sheep in $B$ which are wolves in $A$.
+    Replace one of your two sheep in $A$ with a wolf in $A'$.
+    Also, replace one of your two sheep in $B$ with a wolf in $B'$. (If this causes $B'$
+    to be identical to $A'$, then choose the other innocent sheep you identified in $B$ instead.
+    This is why it's important that $k \le n-2$, so that we have that choice.)
+    Now $A'$ and $B'$ are two different arrangements of $k+1$ wolves, and by construction
+    they cannot be distinguished by our series of tests on $n$ animals. But our series of
+    tests is known to be a solution to $(n, k+1)$! Contradiction; therefore we must reject
+    our supposition that $A$ and $B$ exist; thus our solution to $(n, k+1)$ is also a
+    solution to $(n, k)$.
+    Therefore, when $k \le n-2$, the _optimal_ solution for $(n, k)$ cannot possibly be
+    worse than the optimal solution for $(n, k+1)$ (although it can be better).
 
 - We know $t(n, 0) = t(n, n) = 0$.
 
