@@ -14,6 +14,28 @@ struct Triangle {
     std::condition_variable cv;
     std::vector<std::vector<int>> entries;
 
+    explicit Triangle(int n) {
+        entries = {
+            {0},
+            {0,0},
+            {0,1,0},
+            {0,2,2,0},
+            {0,2,3,3,0},
+            {0,3,4,4,4,0},
+            {0,3,5,5,5,5,0},
+            {0,3,6,6,6,6,6,0},
+            {0,3,6,7,7,7,7,7,0},
+            {0,4,7,8,8,8,8,8,8,0},
+            {0,4,7,9,9,9,9,9,9,9,0},
+            {0,4,-2,10,10,10,10,10,10,10,10,0},
+            {0,4,-2,-2,11,11,11,11,11,11,-2,11,0},
+            {0,4,-2,-2,-2,12,12,12,12,12,12,-2,12,0},
+        };
+        if (entries.size() > n) {
+            entries.resize(n);
+        }
+    }
+
     std::tuple<int, int> get_work() {
         auto assign = [&](int n, int k) {
             entries[n][k] = -1;
@@ -94,7 +116,6 @@ static void printer_thread(Triangle& triangle)
     int count = 0;
     std::unique_lock<std::mutex> lk(triangle.mtx);
     while (true) {
-        triangle.cv.wait(lk);
         printf("UPDATE %d!------------------------------\n", count);
         for (int n = 0; n < triangle.entries.size(); ++n) {
             printf("    n=%-2d ", n);
@@ -110,12 +131,15 @@ static void printer_thread(Triangle& triangle)
             printf("\n");
         }
         ++count;
+        triangle.cv.wait(lk);
     }
 }
 
 int main(int argc, char **argv)
 {
-    Triangle triangle;
+    // Precompute n rows, to pick up where we left off.
+    int n = argc == 2 ? atoi(argv[1]) : 0;
+    Triangle triangle(n);
     std::thread printer([&]() {
         printer_thread(triangle);
     });
