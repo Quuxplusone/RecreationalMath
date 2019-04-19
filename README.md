@@ -33,6 +33,7 @@ One caveat is that the test results are available to you after all the tests are
 
 Can you help the king by devising a strategy?
 
+
 ## This repository
 
 This repository has a C++ program for brute-forcing solutions to smaller instances
@@ -112,6 +113,12 @@ Here's what I know about the resulting sequence:
     So we must run tests on one sheep at a time in order to get any information.
     So we must run $n-1$ tests.
 
+- In fact it seems that $t(n, n/2) = n-1$ (verified empirically up to $n = 28$),
+    but I don't know how to prove this. This might be simply a case of the
+    Law of Small Numbers: the information-theoretic lower bound
+    $\ceil{\lg (n\choose{n/2})}$ diverges only very slowly from the upper
+    bound of $n-1$.
+
 
 ## The sequence
 
@@ -127,6 +134,10 @@ Here's what I know about the resulting sequence:
     n=8   0  3  6  7  7  7  7  7  0
     n=9   0  4  7  8  8  8  8  8  8  0
     n=10  0  4  7  9  9  9  9  9  9  9  0
-    n=11  0  4  . 10 10 10 10 10 10 10 10  0
-    n=12  0  4  .  . 11 11 11 11 11 11  . 11  0
-    n=13  0  4  .  .  . 12 12 12 12 12 12  . 12  0
+    n=11  0  4  8 10 10 10 10 10 10 10 10  0
+    n=12  0  4  .  . 11 11 11 11 11 11 11 11  0
+    n=13  0  4  .  . 12 12 12 12 12 12 12 12 12  0
+    n=14  0  4  .  .  . 13 13 13 13 13 13 13 13 13  0
+    n=15  0  4  .  .  . 14 14 14 14 14 14 14 14 14 14  0
+    n=16  0  4  .  .  .  . 15 15 15 15 15 15 15 15 15 15  0
+    n=17  0  5  .  .  .  .  . 16 16 16 16 16 16 16 16 16 16  0
