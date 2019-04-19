@@ -128,8 +128,12 @@ Int increment(Int m, int i) {
     return m;
 }
 
-static void attempt_testing(std::vector<Candidate>& cands, std::vector<Int>& solution, int n, int i, int t) {
+static void attempt_testing(std::function<bool()>& early_terminate, std::vector<Candidate>& cands, std::vector<Int>& solution, int n, int i, int t) {
     assert(i < t);
+    if (early_terminate()) {
+        throw EarlyTerminateException();
+    }
+
     Int mask_so_far = Int(0);
     for (int j=0; j < i; ++j) mask_so_far |= solution[j];
 
@@ -193,12 +197,17 @@ static void attempt_testing(std::vector<Candidate>& cands, std::vector<Int>& sol
             report_solution(solution, n, i+1, cands);
         } else {
             solution[i] = m;
-            attempt_testing(cands, solution, n, i+1, t);
+            attempt_testing(early_terminate, cands, solution, n, i+1, t);
         }
     }
 }
 
 NktResult solve_wolves(int n, int k, int t)
+{
+    return solve_wolves(n, k, t, []() { return false; });
+}
+
+NktResult solve_wolves(int n, int k, int t, std::function<bool()> early_terminate)
 {
     // k wolves hiding among n sheep, given t blood tests
 
@@ -247,7 +256,7 @@ NktResult solve_wolves(int n, int k, int t)
 #endif
         std::vector<Int> solution(t);
         try {
-            attempt_testing(cands, solution, n, 0, t);
+            attempt_testing(early_terminate, cands, solution, n, 0, t);
         } catch (const NktResult& result) {
             assert(result.success == true);
             return result;

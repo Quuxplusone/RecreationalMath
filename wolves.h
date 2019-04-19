@@ -1,6 +1,9 @@
 #pragma once
 
+#include <functional>
 #include <string>
+
+struct EarlyTerminateException {};
 
 struct NktResult {
     bool success;
@@ -9,3 +12,4 @@ struct NktResult {
 };
 
 NktResult solve_wolves(int n, int k, int t);
+NktResult solve_wolves(int n, int k, int t, std::function<bool()> early_terminate);
