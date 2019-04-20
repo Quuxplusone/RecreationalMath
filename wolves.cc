@@ -1,7 +1,6 @@
 
 #include <algorithm>
 #include <assert.h>
-#include <map>
 #include <stdio.h>
 #include <string>
 #include <vector>
@@ -175,8 +174,9 @@ static void attempt_testing(const F& early_terminate, std::vector<Candidate>& ca
 
         bool this_test_is_workable = true;
         bool these_tests_are_sufficient = true;
-        std::map<Int, Int> partial_result_counts;
+        std::vector<Int> partial_result_counts(Int(1) << (i + 1));
         for (auto&& cand : cands) {
+            assert(cand.test_results < partial_result_counts.size());
             Int& count = partial_result_counts[cand.test_results];
             count += 1;
             if (count > limit) {
