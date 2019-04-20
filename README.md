@@ -102,6 +102,13 @@ Here's what I know about the resulting sequence:
     Therefore, when $k \le n-2$, the _optimal_ solution for $(n, k)$ cannot possibly be
     worse than the optimal solution for $(n, k+1)$ (although it can be better).
 
+- We know $t(n, k) \le t(n+1, k) \le t(n, k)+1$ when $k < n$. We can solve $(n+1, k)$
+    by running our solution for $(n, k)$ on the first $n$ animals, and then additionally
+    testing the last animal individually. If the last animal is a sheep, then our testing
+    strategy solves the remaining instance of $(n, k)$; if the last animal is a wolf, then
+    (by the argument in the preceding bullet point) our same testing strategy solves the
+    remaining instance of $(n, k-1)$.
+
 - We know $t(n, 0) = t(n, n) = 0$.
 
 - We know $t(n, 1) = \ceil{\lg (n\choose k)}$.

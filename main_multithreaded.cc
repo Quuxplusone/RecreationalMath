@@ -8,6 +8,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "eytzinger_utils.h"
 #include "wolves.h"
 
 struct WorkItem {
@@ -108,8 +109,18 @@ struct Triangle {
             for (int n2 = 0; n2 <= n; ++n2) {
                 for (int k2 = 0; k2 <= k && k2 < n2; ++k2) {
                     // We skip k2 == n2 on purpose.
-                    if (entries[n2][k2].max_t > max_t) {
+                    if (max_t < entries[n2][k2].max_t) {
                         entries[n2][k2].max_t = max_t;
+                        entries[n2][k2].interrupt_worker();
+                    }
+                }
+            }
+            // Any (n+i, k) cannot take more than t(n,k) + i tests.
+            for (int n2 = n; n2 < entries.size(); ++n2) {
+                int new_max = max_t + (n2 - n);
+                for (int k2 = 1; k2 <= k; ++k2) {
+                    if (new_max < entries[n2][k2].max_t) {
+                        entries[n2][k2].max_t = new_max;
                         entries[n2][k2].interrupt_worker();
                     }
                 }
@@ -130,13 +141,22 @@ struct Triangle {
             if (entries[n][1].is_unstarted()) {
                 return assign(n, 1);
             }
-            for (int i=0; i < n; ++i) {
-                int k = (n % 2) == 1 ?
-                    ((i % 2) == 0 ? (n / 2) - (i / 2) : (n / 2) + (i / 2) + 1) :
-                    ((i % 2) == 0 ? (n / 2) + (i / 2) : (n / 2) - (i / 2) - 1);
-                assert(0 <= k && k < n);
-                if (entries[n][k].is_unstarted()) {
-                    return assign(n, k);
+            int workers_already_in_this_row = 0;
+            for (int k=0; k < n; ++k) {
+                if (entries[n][k].is_in_progress()) {
+                    workers_already_in_this_row += 1;
+                }
+            }
+            if (workers_already_in_this_row <= 1) {
+                // Avoid putting too many workers in a single row
+                // of the triangle, because they'll be constantly
+                // interrupting each other.
+                for (int i=0; i < n; ++i) {
+                    int k = eytzinger_from_rank(i, n);
+                    assert(0 <= k && k < n);
+                    if (entries[n][k].is_unstarted()) {
+                        return assign(n, k);
+                    }
                 }
             }
         }
@@ -176,17 +196,11 @@ struct Triangle {
         std::lock_guard<std::mutex> lk(mtx);
         assert(0 <= n && n < entries.size());
         assert(0 <= k && k <= entries[n].size());
-        if (entries[n][k].is_done()) {
-            // Someone else must have raced us to the finish line.
-            // Check that we got the same answer.
-            assert(entries[n][k].min_t == t);
-            assert(entries[n][k].max_t == t);
-        } else {
-            entries[n][k].min_t = t;
-            entries[n][k].max_t = t;
-            entries[n][k].notify_done = nullptr;
-            update_mins_and_maxes(n, k);
-        }
+        assert(entries[n][k].min_t <= t && t <= entries[n][k].max_t);
+        entries[n][k].min_t = t;
+        entries[n][k].max_t = t;
+        entries[n][k].notify_done = nullptr;
+        update_mins_and_maxes(n, k);
         cv.notify_all();
     }
 
@@ -194,12 +208,6 @@ struct Triangle {
         std::lock_guard<std::mutex> lk(mtx);
         assert(0 <= n && n < entries.size());
         assert(0 <= k && k <= entries[n].size());
-        if (entries[n][k].is_done()) {
-            // Someone else must have raced us to the finish line.
-            assert(min_t <= entries[n][k].min_t);
-            assert(entries[n][k].min_t == entries[n][k].max_t);
-            return;
-        }
         assert(entries[n][k].is_in_progress());
         if (entries[n][k].min_t < min_t) {
             assert(min_t <= entries[n][k].max_t);
