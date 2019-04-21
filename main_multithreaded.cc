@@ -12,7 +12,7 @@
 #include "wolves.h"
 
 struct WorkItem {
-    std::atomic<bool> *notify_done = nullptr;
+    std::atomic<bool> *stop_working = nullptr;
     int min_t = 0;
     int max_t = INT_MAX;
 
@@ -22,20 +22,20 @@ struct WorkItem {
     }
 
     bool is_unstarted() const {
-        return (min_t != max_t) && (notify_done == nullptr);
+        return (min_t != max_t) && (stop_working == nullptr);
     }
 
     bool is_in_progress() const {
-        return notify_done != nullptr;
+        return stop_working != nullptr;
     }
 
-    bool is_done() const {
-        return (min_t == max_t) && (notify_done == nullptr);
+    bool has_answer() const {
+        return (min_t == max_t);
     }
 
     void interrupt_worker() {
-        if (notify_done != nullptr) {
-            *notify_done = true;
+        if (stop_working != nullptr) {
+            stop_working->store(true);
         }
     }
 };
@@ -74,8 +74,7 @@ struct Triangle {
                 int t = known_entries[n][k];
                 entries.back().emplace_back();
                 if (t >= 0) {
-                    entries.back().back().min_t = t;
-                    entries.back().back().max_t = t;
+                    entries.back().back().pre_solve(t);
                 }
             }
         }
@@ -135,10 +134,10 @@ struct Triangle {
         }
     }
 
-    std::tuple<int, int> get_work(std::atomic<bool> *done) {
+    std::tuple<int, int> get_work(std::atomic<bool> *stop_working) {
         auto assign = [&](int n, int k) {
-            assert(entries[n][k].notify_done == nullptr);
-            entries[n][k].notify_done = done;
+            assert(entries[n][k].stop_working == nullptr);
+            entries[n][k].stop_working = stop_working;
             return std::make_tuple(n, k);
         };
         std::unique_lock<std::mutex> lk(mtx);
@@ -179,7 +178,7 @@ struct Triangle {
         }
         update_mins_and_maxes(n, n-1);
         lk.unlock();
-        return get_work(done);
+        return get_work(stop_working);
     }
 
     int get_min_t(int n, int k) {
@@ -200,7 +199,7 @@ struct Triangle {
         std::lock_guard<std::mutex> lk(mtx);
         assert(0 <= n && n < entries.size());
         assert(0 <= k && k <= entries[n].size());
-        entries[n][k].notify_done = nullptr;
+        entries[n][k].stop_working = nullptr;
     }
 
     void report_positive_result(int n, int k, int t) {
@@ -210,7 +209,7 @@ struct Triangle {
         assert(entries[n][k].min_t <= t && t <= entries[n][k].max_t);
         entries[n][k].min_t = t;
         entries[n][k].max_t = t;
-        entries[n][k].notify_done = nullptr;
+        entries[n][k].stop_working = nullptr;
         update_mins_and_maxes(n, k);
         cv.notify_all();
     }
@@ -231,10 +230,10 @@ struct Triangle {
 
 static void worker_thread(Triangle& triangle)
 {
-    std::atomic<bool> done(false);
-    std::tuple<int, int> nk = triangle.get_work(&done);
+    std::atomic<bool> stop_working(false);
+    std::tuple<int, int> nk = triangle.get_work(&stop_working);
     auto early_terminate = [&]() {
-        return done.load();
+        return stop_working.load();
     };
     int n = std::get<0>(nk);
     int k = std::get<1>(nk);
@@ -264,8 +263,7 @@ static void printer_thread(Triangle& triangle)
         for (int n = 0; n < triangle.entries.size(); ++n) {
             printf("    n=%-2d ", n);
             for (int k = 0; k < triangle.entries[n].size(); ++k) {
-                if (triangle.entries[n][k].is_done()) {
-                    assert(triangle.entries[n][k].min_t == triangle.entries[n][k].max_t);
+                if (triangle.entries[n][k].has_answer()) {
                     printf("%3d", triangle.entries[n][k].min_t);
                 } else if (triangle.entries[n][k].is_in_progress()) {
                     printf("  x");
