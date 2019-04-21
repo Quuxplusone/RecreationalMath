@@ -46,11 +46,11 @@ When brute-forcing solutions, here's what I think I know about the search space.
     We can immediately short-circuit some cases, such as if $t < \ceil{\lg (n\choose k)}$
     or $t \ge n-1$.
 
-- Without loss of generality, we can force sheep to be introduced in order. That is,
+- Without loss of generality, we can force animals to be introduced in order. That is,
     the first test must use blood from Sheep 0, may additionally use Sheep 1,
     may additionally use Sheep 2 only if it also used Sheep 1, and so on.
     If the first test used Sheep 0 through 3, then the second test may use any of
-    those sheep, but it may additionally use Sheep 5 only if it also uses Sheep 4.
+    those animals, but it may additionally use Sheep 5 only if it also uses Sheep 4.
 
 - Without loss of generality, we can force tests to be done in lexicographic/numeric
     order. That is, if test $i$ uses blood from Sheeps (4,3,1), then test $i+1$ could use
@@ -58,13 +58,13 @@ When brute-forcing solutions, here's what I think I know about the search space.
     tests on (3,2,1,0) *followed by* (4,3,1), that's fine. By forcing the order,
     we avoid double-counting.
 
-- We know that ultimately we must use blood from at least $n-1$ different sheep.
-    (If we omitted two sheep from testing, then it might happen that one was a wolf,
+- We know that ultimately we must use blood from at least $n-1$ different animals.
+    (If we omitted two animals from testing, then it might happen that one was a wolf,
     and we wouldn't know which one.) By the pigeonhole principle, at least one of
-    our $t$ tests must use blood from at least $\ceil{(n-1) / t}$ sheep.
+    our $t$ tests must use blood from at least $\ceil{(n-1) / t}$ animals.
     Without loss of generality, we can assume that that test is the first test.
     We can apply this logic at each stage of testing, with respect to the $t - i$
-    remaining tests and the $n - m$ remaining sheep.
+    remaining tests and the $n - m$ remaining animals.
 
 - Consider all $(n\choose k)$ arrangements of wolves among our sheep.
     If, after some sequence of $i$ tests, we see that our tests so far would have
