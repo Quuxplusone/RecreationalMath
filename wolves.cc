@@ -26,6 +26,9 @@ int ceil_lg(Int value) {
 
 static inline
 int popcount(Int value) {
+#if 1
+    return __builtin_popcountll(value);
+#else
     Int bit = 1;
     int result = 0;
     while (bit <= value) {
@@ -33,6 +36,7 @@ int popcount(Int value) {
         bit <<= 1;
     }
     return result;
+#endif
 }
 
 static inline
