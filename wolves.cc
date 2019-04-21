@@ -157,7 +157,7 @@ static void attempt_testing(const F& early_terminate, TestingState& state, int n
     // we can assume that that test is the very next test.
 
     Int starting_m = (i == 0) ? (Int(1) << min_new_pigeons_in_this_hole) - 1 : state.solution[i-1] + 1;
-    for (Int m = starting_m; m < (Int(1) << n) - 1; m = increment(m, i)) {
+    for (Int m = starting_m; m < (Int(1) << (n - 1)) - 1; m = increment(m, i)) {
 
         if (!is_power_of_2_minus_1(mask_so_far | m)) {
             // Testing the 6th animal when we haven't touched the 5th animal yet is pointless.

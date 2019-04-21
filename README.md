@@ -66,6 +66,10 @@ When brute-forcing solutions, here's what I think I know about the search space.
     We can apply this logic at each stage of testing, with respect to the $t - i$
     remaining tests and the $n - m$ remaining animals.
 
+- Vice versa, it seems that we don't need to test _more_ than $n-1$ different animals.
+    If we have a solution that takes blood from all $n$ animals, then we can simply
+    drop the last animal from all its tests. (TODO: prove this!)
+
 - Consider all $(n\choose k)$ arrangements of wolves among our sheep.
     If, after some sequence of $i$ tests, we see that our tests so far would have
     failed to distinguish between $x > 2^{(t - i)}$ different possible arrangements of
