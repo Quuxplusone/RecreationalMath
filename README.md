@@ -109,6 +109,14 @@ Here's what I know about the resulting sequence:
     (by the argument in the preceding bullet point) our same testing strategy solves the
     remaining instance of $(n, k-1)$.
 
+- We know $t(n, k) < t(n+1, k+1)$ when $k < n$. Suppose we have a solution to $(n+1, k+1)$
+    that takes $t$ tests, and where the most-tested animal participates in $i$ different tests.
+    (We know $i \ge 1$.) Then we can solve $(n, k)$ by simply _introducing an extra wolf,_
+    producing an instance of $(n+1, k+1)$, which we know how to solve in $t$ tests.
+    In fact, we will place our new wolf in the most-tested position, so that $i$ of our
+    $t$ tests have a foregone conclusion of "wolfy," and therefore we don't need to run them.
+    Therefore we can solve $(n, k)$ in $t(n+1, k+1) - i$ tests.
+
 - We know $t(n, 0) = t(n, n) = 0$.
 
 - We know $t(n, 1) = \ceil{\lg (n\choose k)}$.
@@ -148,3 +156,6 @@ Here's what I know about the resulting sequence:
     n=15  0  4  .  .  . 14 14 14 14 14 14 14 14 14 14  0
     n=16  0  4  .  .  .  . 15 15 15 15 15 15 15 15 15 15  0
     n=17  0  5  .  .  .  .  . 16 16 16 16 16 16 16 16 16 16  0
+    n=18  0  5  .  .  .  .  . 17 17 17 17 17 17 17 17 17 17 17  0
+    n=19  0  5  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 18  0
+    n=20  0  5  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 19  0

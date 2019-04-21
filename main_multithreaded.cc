@@ -92,37 +92,44 @@ struct Triangle {
     }
 
     void update_mins_and_maxes(int n, int k) {
+        if (k == 0 || k == n) {
+            // The answer is "0" and we learn nothing from this.
+            return;
+        }
         int min_t = entries[n][k].min_t;
         int max_t = entries[n][k].max_t;
         // Anyone down-and-right of (n,k) cannot take fewer tests than (n,k) takes.
+        // In fact, each additional (+1,+1) definitely requires one extra test.
         for (int n2 = n; n2 < entries.size(); ++n2) {
             for (int k2 = k; k2 < n2; ++k2) {
                 // We skip k2 == n2 on purpose.
-                if (entries[n2][k2].min_t < min_t) {
-                    entries[n2][k2].min_t = min_t;
+                int extra = std::min((n2 - n), (k2 - k));
+                if (entries[n2][k2].min_t < min_t + extra) {
+                    entries[n2][k2].min_t = min_t + extra;
                     entries[n2][k2].interrupt_worker();
                 }
             }
         }
-        if (k != n) {
-            // Anyone above-and-left of (n,k) cannot take more tests than (n,k) takes.
-            for (int n2 = 0; n2 <= n; ++n2) {
-                for (int k2 = 0; k2 <= k && k2 < n2; ++k2) {
-                    // We skip k2 == n2 on purpose.
-                    if (max_t < entries[n2][k2].max_t) {
-                        entries[n2][k2].max_t = max_t;
-                        entries[n2][k2].interrupt_worker();
-                    }
+        // Anyone above-and-left of (n,k) cannot take more tests than (n,k) takes.
+        // In fact, each additional (-1,-1) definitely can be done in one fewer test.
+        for (int n2 = 0; n2 <= n; ++n2) {
+            for (int k2 = 0; k2 <= k && k2 < n2; ++k2) {
+                // We skip k2 == n2 on purpose.
+                int extra = std::min((n - n2), (k - k2));
+                assert(0 <= max_t - extra);
+                if (max_t - extra < entries[n2][k2].max_t) {
+                    entries[n2][k2].max_t = max_t - extra;
+                    entries[n2][k2].interrupt_worker();
                 }
             }
-            // Any (n+i, k) cannot take more than t(n,k) + i tests.
-            for (int n2 = n; n2 < entries.size(); ++n2) {
-                int new_max = max_t + (n2 - n);
-                for (int k2 = 1; k2 <= k; ++k2) {
-                    if (new_max < entries[n2][k2].max_t) {
-                        entries[n2][k2].max_t = new_max;
-                        entries[n2][k2].interrupt_worker();
-                    }
+        }
+        // Any (n+i, k) cannot take more than t(n,k) + i tests.
+        for (int n2 = n; n2 < entries.size(); ++n2) {
+            int new_max = max_t + (n2 - n);
+            for (int k2 = 1; k2 <= k; ++k2) {
+                if (new_max < entries[n2][k2].max_t) {
+                    entries[n2][k2].max_t = new_max;
+                    entries[n2][k2].interrupt_worker();
                 }
             }
         }
@@ -166,6 +173,10 @@ struct Triangle {
         entries[n][0].pre_solve(0);
         entries[n][n-1].pre_solve(n-1);
         entries[n][n].pre_solve(0);
+        // Fill in as much of this row as we can infer automatically.
+        for (int k=1; k < n-1; ++k) {
+            update_mins_and_maxes(n-1, k);
+        }
         update_mins_and_maxes(n, n-1);
         lk.unlock();
         return get_work(done);
