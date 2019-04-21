@@ -118,7 +118,9 @@ struct Triangle {
                 assert(0 <= max_t - extra);
                 if (max_t - extra < entries[n2][k2].max_t) {
                     entries[n2][k2].max_t = max_t - extra;
-                    entries[n2][k2].interrupt_worker();
+                    if (entries[n2][k2].has_answer()) {
+                        entries[n2][k2].interrupt_worker();
+                    }
                 }
             }
         }
@@ -128,17 +130,19 @@ struct Triangle {
             for (int k2 = 1; k2 <= k; ++k2) {
                 if (new_max < entries[n2][k2].max_t) {
                     entries[n2][k2].max_t = new_max;
-                    entries[n2][k2].interrupt_worker();
+                    if (entries[n2][k2].has_answer()) {
+                        entries[n2][k2].interrupt_worker();
+                    }
                 }
             }
         }
     }
 
-    std::tuple<int, int> get_work(std::atomic<bool> *stop_working) {
+    std::tuple<int, int, int> get_work(std::atomic<bool> *stop_working) {
         auto assign = [&](int n, int k) {
             assert(entries[n][k].stop_working == nullptr);
             entries[n][k].stop_working = stop_working;
-            return std::make_tuple(n, k);
+            return std::make_tuple(n, k, entries[n][k].min_t);
         };
         std::unique_lock<std::mutex> lk(mtx);
         for (int n=0; n < entries.size(); ++n) {
@@ -181,20 +185,6 @@ struct Triangle {
         return get_work(stop_working);
     }
 
-    int get_min_t(int n, int k) {
-        if (n == 0 || k == 0 || k == n) return 0;
-        if (k == n-1) return n-1;
-        std::lock_guard<std::mutex> lk(mtx);
-        return entries[n][k].min_t;
-    }
-
-    int get_max_t(int n, int k) {
-        if (n == 0 || k == 0 || k == n) return 0;
-        if (k == n-1) return n-1;
-        std::lock_guard<std::mutex> lk(mtx);
-        return entries[n][k].max_t;
-    }
-
     void report_early_terminate(int n, int k) {
         std::lock_guard<std::mutex> lk(mtx);
         assert(0 <= n && n < entries.size());
@@ -207,21 +197,23 @@ struct Triangle {
         assert(0 <= n && n < entries.size());
         assert(0 <= k && k <= entries[n].size());
         assert(entries[n][k].min_t <= t && t <= entries[n][k].max_t);
-        entries[n][k].min_t = t;
-        entries[n][k].max_t = t;
+        // It can be done in "t" steps, so the new maximum is "t".
         entries[n][k].stop_working = nullptr;
-        update_mins_and_maxes(n, k);
-        cv.notify_all();
+        if (t < entries[n][k].max_t) {
+            entries[n][k].max_t = t;
+            update_mins_and_maxes(n, k);
+            cv.notify_all();
+        }
     }
 
-    void report_new_min_t(int n, int k, int min_t) {
+    void report_negative_result(int n, int k, int t) {
         std::lock_guard<std::mutex> lk(mtx);
         assert(0 <= n && n < entries.size());
         assert(0 <= k && k <= entries[n].size());
-        assert(entries[n][k].is_in_progress());
-        if (entries[n][k].min_t < min_t) {
-            assert(min_t <= entries[n][k].max_t);
-            entries[n][k].min_t = min_t;
+        // It can't be done in "t" steps, so the new minimum is "t+1".
+        entries[n][k].stop_working = nullptr;
+        if (entries[n][k].min_t < t+1) {
+            entries[n][k].min_t = t+1;
             update_mins_and_maxes(n, k);
             cv.notify_all();
         }
@@ -231,27 +223,24 @@ struct Triangle {
 static void worker_thread(Triangle& triangle)
 {
     std::atomic<bool> stop_working(false);
-    std::tuple<int, int> nk = triangle.get_work(&stop_working);
+    std::tuple<int, int, int> nkt = triangle.get_work(&stop_working);
     auto early_terminate = [&]() {
         return stop_working.load();
     };
-    int n = std::get<0>(nk);
-    int k = std::get<1>(nk);
-    int min_t = triangle.get_min_t(n, k);
-    int max_t = triangle.get_max_t(n, k);
-    for (int t = min_t; t < max_t; ++t) {
-        triangle.report_new_min_t(n, k, t);
-        try {
-            NktResult result = solve_wolves(n, k, t, early_terminate);
-            if (result.success) {
-                return triangle.report_positive_result(n, k, t);
-            }
-        } catch (const EarlyTerminateException&) {
-            // We have been instructed to give up early.
-            return triangle.report_early_terminate(n, k);
+    int n = std::get<0>(nkt);
+    int k = std::get<1>(nkt);
+    int t = std::get<2>(nkt);
+    try {
+        NktResult result = solve_wolves(n, k, t, early_terminate);
+        if (result.success) {
+            return triangle.report_positive_result(n, k, t);
+        } else {
+            return triangle.report_negative_result(n, k, t);
         }
+    } catch (const EarlyTerminateException&) {
+        // We have been instructed to give up early.
+        return triangle.report_early_terminate(n, k);
     }
-    return triangle.report_positive_result(n, k, max_t);
 }
 
 static void printer_thread(Triangle& triangle)
