@@ -127,15 +127,23 @@ Int increment(Int m, int i) {
     return m;
 }
 
+namespace {
+struct TestingState {
+    std::vector<Candidate> cands;
+    std::vector<Int> solution;
+    std::vector<Int> partial_result_counts;
+};
+} // anonymous namespace
+
 template<class F>
-static void attempt_testing(const F& early_terminate, std::vector<Candidate>& cands, std::vector<Int>& solution, int n, int i, int t) {
+static void attempt_testing(const F& early_terminate, TestingState& state, int n, int i, int t) {
     assert(i < t);
     if (early_terminate()) {
         throw EarlyTerminateException();
     }
 
     Int mask_so_far = Int(0);
-    for (int j=0; j < i; ++j) mask_so_far |= solution[j];
+    for (int j=0; j < i; ++j) mask_so_far |= state.solution[j];
 
     int remaining_pigeons = (n - 1) - popcount(mask_so_far);
     int remaining_holes = (t - i);
@@ -144,7 +152,7 @@ static void attempt_testing(const F& early_terminate, std::vector<Candidate>& ca
     // involve AT LEAST this many yet-to-be-tested sheep. Without loss of generality,
     // we can assume that that test is the very next test.
 
-    Int starting_m = (i == 0) ? (Int(1) << min_new_pigeons_in_this_hole) - 1 : solution[i-1] + 1;
+    Int starting_m = (i == 0) ? (Int(1) << min_new_pigeons_in_this_hole) - 1 : state.solution[i-1] + 1;
     for (Int m = starting_m; m < (Int(1) << n) - 1; m = increment(m, i)) {
 
         if (!is_power_of_2_minus_1(mask_so_far | m)) {
@@ -158,7 +166,7 @@ static void attempt_testing(const F& early_terminate, std::vector<Candidate>& ca
 
         // Suppose the i'th test (out of t tests total) combines blood from these sheep.
         // What will the result of the test be, for each candidate arrangement of wolves?
-        for (auto&& cand : cands) {
+        for (auto& cand : state.cands) {
             Int test_result = Int(0);
             if (m & cand.is_wolf) {
                 test_result = Int(1);
@@ -174,10 +182,13 @@ static void attempt_testing(const F& early_terminate, std::vector<Candidate>& ca
 
         bool this_test_is_workable = true;
         bool these_tests_are_sufficient = true;
-        std::vector<Int> partial_result_counts(Int(1) << (i + 1));
-        for (auto&& cand : cands) {
-            assert(cand.test_results < partial_result_counts.size());
-            Int& count = partial_result_counts[cand.test_results];
+        state.partial_result_counts.resize(Int(1) << (i + 1));
+        for (Int& count : state.partial_result_counts) {
+            count = 0;
+        }
+        for (const auto& cand : state.cands) {
+            assert(cand.test_results < state.partial_result_counts.size());
+            Int& count = state.partial_result_counts[cand.test_results];
             count += 1;
             if (count > limit) {
                 this_test_is_workable = false;
@@ -194,11 +205,11 @@ static void attempt_testing(const F& early_terminate, std::vector<Candidate>& ca
         if (!this_test_is_workable) {
             // well shoot, reject
         } else if (these_tests_are_sufficient) {
-            solution[i] = m;
-            report_solution(solution, n, i+1, cands);
+            state.solution[i] = m;
+            report_solution(state.solution, n, i+1, state.cands);
         } else {
-            solution[i] = m;
-            attempt_testing(early_terminate, cands, solution, n, i+1, t);
+            state.solution[i] = m;
+            attempt_testing(early_terminate, state, n, i+1, t);
         }
     }
 }
@@ -251,9 +262,11 @@ static NktResult solve_wolves_impl(int n, int k, int t, const F& early_terminate
             printf("\n");
         }
 #endif
-        std::vector<Int> solution(t);
+        TestingState state;
+        state.cands = std::move(cands);
+        state.solution.resize(t);
         try {
-            attempt_testing(early_terminate, cands, solution, n, 0, t);
+            attempt_testing(early_terminate, state, n, 0, t);
         } catch (const NktResult& result) {
             assert(result.success == true);
             return result;
