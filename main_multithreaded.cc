@@ -139,6 +139,33 @@ struct Triangle {
                 }
             }
         }
+        if (min_t == n-1) {
+            int n2 = n+2;
+            int k2 = k+1;
+            int new_min = n+1;
+            if (n2 < entries.size()) {
+                assert(k2 < entries[n2].size());
+                if (entries[n2][k2].min_t < new_min) {
+                    entries[n2][k2].min_t = new_min;
+                    entries[n2][k2].interrupt_worker();
+                    update_mins_and_maxes(n2, k2);
+                }
+            }
+        }
+    }
+
+    void start_fresh_row() {
+        int n = entries.size();
+        entries.push_back(std::vector<WorkItem>(n+1));
+        entries[n][0].pre_solve(0);
+        entries[n][n-1].pre_solve(n-1);
+        entries[n][n].pre_solve(0);
+        // Fill in as much of this row as we can infer automatically.
+        for (int n2 = 0; n2 < n; ++n2) {
+            for (int k2=1; k2 < n2; ++k2) {
+                update_mins_and_maxes(n2, k2);
+            }
+        }
     }
 
     std::tuple<int, int, int> get_work(std::atomic<bool> *stop_working) {
@@ -174,16 +201,7 @@ struct Triangle {
             }
         }
         // We didn't find any work not-yet-being-done. Start a fresh row.
-        int n = entries.size();
-        entries.push_back(std::vector<WorkItem>(n+1));
-        entries[n][0].pre_solve(0);
-        entries[n][n-1].pre_solve(n-1);
-        entries[n][n].pre_solve(0);
-        // Fill in as much of this row as we can infer automatically.
-        for (int k=1; k < n-1; ++k) {
-            update_mins_and_maxes(n-1, k);
-        }
-        update_mins_and_maxes(n, n-1);
+        start_fresh_row();
         lk.unlock();
         return get_work(stop_working);
     }

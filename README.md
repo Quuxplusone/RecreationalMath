@@ -76,6 +76,17 @@ When brute-forcing solutions, here's what I think I know about the search space.
 
 Here's what I know about the resulting sequence:
 
+- We know $t(n, 0) = t(n, n) = 0$.
+
+- We know $t(n, 1) = \ceil{\lg (n\choose k)}$.
+
+- We know $t(n, n-1) = n-1$. If there's only one innocent sheep, then out of all
+    the possible tests we could run, _every single test_ will return "wolfy"
+    except for the empty test and the test containing blood from only the
+    innocent sheep. That's the only test that gives us any information at all.
+    So we must run tests on one sheep at a time in order to get any information.
+    So we must run $n-1$ tests.
+
 - We know $t(n, k) \le t(n+1, k)$. If we have a working solution $t(n+1, k)$, then
     we can solve $(n, k)$ by simply _introducing an extra innocent sheep,_
     producing an instance of $(n+1, k)$, which we know how to solve in $t$ tests.
@@ -117,22 +128,12 @@ Here's what I know about the resulting sequence:
     $t$ tests have a foregone conclusion of "wolfy," and therefore we don't need to run them.
     Therefore we can solve $(n, k)$ in $t(n+1, k+1) - i$ tests.
 
-- We know $t(n, 0) = t(n, n) = 0$.
-
-- We know $t(n, 1) = \ceil{\lg (n\choose k)}$.
-
-- We know $t(n, n-1) = n-1$. If there's only one innocent sheep, then out of all
-    the possible tests we could run, _every single test_ will return "wolfy"
-    except for the empty test and the test containing blood from only the
-    innocent sheep. That's the only test that gives us any information at all.
-    So we must run tests on one sheep at a time in order to get any information.
-    So we must run $n-1$ tests.
-
-- In fact it seems that $t(n, n/2) = n-1$ (verified empirically up to $n = 28$),
-    but I don't know how to prove this. This might be simply a case of the
-    Law of Small Numbers: the information-theoretic lower bound
-    $\ceil{\lg (n\choose{n/2})}$ diverges only very slowly from the upper
-    bound of $n-1$.
+- We know that whenever $t(n, k) = n-1$, then $t(n+2, k+1) = n+1$.
+    If $t(n+2, k+1) = n$, then that solution must involve at least one animal being
+    tested $i=2$ times, and thus $t(n+1, k)$ could be solved in $n-2$ tests (by the
+    argument in the preceding bullet point). But $t(n+1, k) \le n-2$ contradicts
+    our premise that $t(n+1, k) \ge t(n, k) \ge n-1$. As a corollary, we observe that
+    $t(n, \ceil{n/2}) = n-1$ for all $n \ge 1$.
 
 
 ## The sequence
@@ -155,7 +156,7 @@ Here's what I know about the resulting sequence:
     n=14  0  4  .  .  . 13 13 13 13 13 13 13 13 13  0
     n=15  0  4  .  .  . 14 14 14 14 14 14 14 14 14 14  0
     n=16  0  4  .  .  .  . 15 15 15 15 15 15 15 15 15 15  0
-    n=17  0  5  .  .  .  .  . 16 16 16 16 16 16 16 16 16 16  0
+    n=17  0  5  .  .  .  . 16 16 16 16 16 16 16 16 16 16 16  0
     n=18  0  5  .  .  .  .  . 17 17 17 17 17 17 17 17 17 17 17  0
-    n=19  0  5  .  .  .  .  .  . 18 18 18 18 18 18 18 18 18 18 18  0
-    n=20  0  5  .  .  .  .  .  .  . 19 19 19 19 19 19 19 19 19 19 19  0
+    n=19  0  5  .  .  .  .  . 18 18 18 18 18 18 18 18 18 18 18 18  0
+    n=20  0  5  .  .  .  .  .  . 19 19 19 19 19 19 19 19 19 19 19 19  0
