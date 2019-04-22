@@ -170,17 +170,6 @@ static void attempt_testing(const F& early_terminate, TestingState& state, int n
             continue;
         }
 
-        // Suppose the i'th test (out of t tests total) combines blood from these sheep.
-        // What will the result of the test be, for each candidate arrangement of wolves?
-        for (auto& cand : state.cands) {
-            Int test_result = Int(0);
-            if (m & cand.is_wolf) {
-                test_result = Int(1);
-            }
-            cand.test_results &= (Int(1) << i) - 1;   // clear all bits [i..t)
-            cand.test_results |= (test_result << i);  // set bit [i] appropriately
-        }
-
         // Having performed this test, we want to make sure that it's still
         // information-theoretically possible to distinguish so-far-identical
         // cases in our remaining (t - i - 1) tests.
@@ -192,7 +181,17 @@ static void attempt_testing(const F& early_terminate, TestingState& state, int n
         for (Int& count : state.partial_result_counts) {
             count = 0;
         }
-        for (const auto& cand : state.cands) {
+
+        // Suppose the i'th test (out of t tests total) combines blood from these sheep.
+        // What will the result of the test be, for each candidate arrangement of wolves?
+        for (auto& cand : state.cands) {
+            Int test_result = Int(0);
+            if (m & cand.is_wolf) {
+                test_result = Int(1) << i;
+            }
+            cand.test_results &= (Int(1) << i) - 1;  // clear all bits [i..t)
+            cand.test_results |= test_result;        // set bit [i] appropriately
+
             assert(cand.test_results < state.partial_result_counts.size());
             Int& count = state.partial_result_counts[cand.test_results];
             count += 1;
