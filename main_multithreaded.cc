@@ -15,6 +15,7 @@ struct WorkItem {
     std::atomic<bool> *stop_working = nullptr;
     int min_t = 0;
     int max_t = INT_MAX;
+    int worker_t = 0;
 
     void pre_solve(int t) {
         min_t = t;
@@ -33,8 +34,12 @@ struct WorkItem {
         return (min_t == max_t);
     }
 
-    void interrupt_worker() {
-        if (stop_working != nullptr) {
+    void maybe_interrupt_worker() {
+        if (stop_working == nullptr) {
+            // nobody is currently working on this problem
+        } else if (min_t <= worker_t && worker_t < max_t) {
+            // the active task will still teach us something
+        } else {
             stop_working->store(true);
         }
     }
@@ -108,7 +113,7 @@ struct Triangle {
                 int extra = std::min((n2 - n), (k2 - k));
                 if (entries[n2][k2].min_t < min_t + extra) {
                     entries[n2][k2].min_t = min_t + extra;
-                    entries[n2][k2].interrupt_worker();
+                    entries[n2][k2].maybe_interrupt_worker();
                 }
             }
         }
@@ -121,9 +126,7 @@ struct Triangle {
                 assert(0 <= max_t - extra);
                 if (max_t - extra < entries[n2][k2].max_t) {
                     entries[n2][k2].max_t = max_t - extra;
-                    if (entries[n2][k2].has_answer()) {
-                        entries[n2][k2].interrupt_worker();
-                    }
+                    entries[n2][k2].maybe_interrupt_worker();
                 }
             }
         }
@@ -133,9 +136,7 @@ struct Triangle {
             for (int k2 = 1; k2 <= k; ++k2) {
                 if (new_max < entries[n2][k2].max_t) {
                     entries[n2][k2].max_t = new_max;
-                    if (entries[n2][k2].has_answer()) {
-                        entries[n2][k2].interrupt_worker();
-                    }
+                    entries[n2][k2].maybe_interrupt_worker();
                 }
             }
         }
@@ -147,8 +148,8 @@ struct Triangle {
                 assert(k2 < entries[n2].size());
                 if (entries[n2][k2].min_t < new_min) {
                     entries[n2][k2].min_t = new_min;
-                    entries[n2][k2].interrupt_worker();
                     update_mins_and_maxes(n2, k2);
+                    entries[n2][k2].maybe_interrupt_worker();
                 }
             }
         }
@@ -172,7 +173,9 @@ struct Triangle {
         auto assign = [&](int n, int k) {
             assert(entries[n][k].stop_working == nullptr);
             entries[n][k].stop_working = stop_working;
-            return std::make_tuple(n, k, entries[n][k].min_t);
+            entries[n][k].worker_t = (entries[n][k].min_t + entries[n][k].max_t) / 2;
+            printf("Working on n=%d, k=%d, t=%d (min=%d max=%d)\n", n, k, entries[n][k].worker_t, entries[n][k].min_t, entries[n][k].max_t);
+            return std::make_tuple(n, k, entries[n][k].worker_t);
         };
         std::unique_lock<std::mutex> lk(mtx);
         for (int n=0; n < entries.size(); ++n) {
@@ -217,7 +220,7 @@ struct Triangle {
         std::lock_guard<std::mutex> lk(mtx);
         assert(0 <= n && n < entries.size());
         assert(0 <= k && k <= entries[n].size());
-        assert(entries[n][k].min_t <= t && t <= entries[n][k].max_t);
+        assert(entries[n][k].min_t <= t);
         // It can be done in "t" steps, so the new maximum is "t".
         entries[n][k].stop_working = nullptr;
         if (t < entries[n][k].max_t) {
@@ -231,6 +234,7 @@ struct Triangle {
         std::lock_guard<std::mutex> lk(mtx);
         assert(0 <= n && n < entries.size());
         assert(0 <= k && k <= entries[n].size());
+        assert(t <= entries[n][k].max_t);
         // It can't be done in "t" steps, so the new minimum is "t+1".
         entries[n][k].stop_working = nullptr;
         if (entries[n][k].min_t < t+1) {
