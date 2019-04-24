@@ -31,9 +31,10 @@ int main(int argc, char **argv)
             case  9: triangle = {0,4,7,8,8,8,8,8,8,0}; break;
             case 10: triangle = {0,4,7,9,9,9,9,9,9,9,0}; break;
             case 11: triangle = {0,4,8,10,10,10,10,10,10,10,10,0}; break;
+            case 12: triangle = {0,4,8,11,11,11,11,11,11,11,11,11,0}; break;
 
             default: {
-                printf("Precomputed triangle rows are known only up to n=11.\n");
+                printf("Precomputed triangle rows are known only up to n=12.\n");
                 exit(1);
             }
         }
