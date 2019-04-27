@@ -138,6 +138,17 @@ struct TestingState {
     std::vector<Candidate> cands;
     std::vector<Int> solution;
     std::vector<Int> partial_result_counts;
+
+    Int groups_for_sheep(int sheep, int t) const {
+        Int result = Int(0);
+        for (int i=0; i < t; ++i) {
+            if (solution[i] & (Int(1) << sheep)) {
+                result |= Int(1);
+            }
+            result <<= 1;
+        }
+        return result;
+    }
 };
 } // anonymous namespace
 
@@ -159,6 +170,13 @@ static void attempt_testing(const F& early_terminate, TestingState& state, int n
     // we can assume that that test is the very next test.
 
     Int starting_m = (i == 0) ? (Int(1) << min_new_pigeons_in_this_hole) - 1 : state.solution[i-1] + 1;
+
+    // Information theory tells us that, after this test is performed, if our tests
+    // thus far have given identical results for more than 2^(remaining tests)
+    // distinct candidate sets of wolves, then it's hopeless; we'll never distinguish
+    // all of those sets in just (remaining tests) tests.
+    const Int permissible_indistinguishable_cases = Int(1) << (remaining_holes - 1);
+
     for (Int m = starting_m; m < (Int(1) << (n - 1)) - 1; m = increment(m, i)) {
 
         if (!is_power_of_2_minus_1(mask_so_far | m)) {
@@ -170,12 +188,28 @@ static void attempt_testing(const F& early_terminate, TestingState& state, int n
             continue;
         }
 
+        // Without loss of generality, we can keep the columns decreasing to the right.
+        // That is, if Sheeps 1 and 2 have been in the same test groups all the time
+        // up to this point, we should not introduce Sheep 2 into a new group unless Sheep 1
+        // is already there (but we might introduce Sheep 1 without Sheep 2).
+        for (int s2 = 1; s2 < n; ++s2) {
+            int s1 = s2 - 1;
+            bool sheep2_in_group = (m & (Int(1) << s2)) != 0;
+            bool sheep1_in_group = (m & (Int(1) << s1)) != 0;
+            if (sheep2_in_group && !sheep1_in_group) {
+                if (state.groups_for_sheep(s1, i) == state.groups_for_sheep(s2, i)) {
+                    goto abandon_this_line;
+                }
+            }
+        }
+        if (false) {
+            abandon_this_line: continue;
+        }
+
         // Having performed this test, we want to make sure that it's still
         // information-theoretically possible to distinguish so-far-identical
         // cases in our remaining (t - i - 1) tests.
-        Int limit = Int(1) << (t - i - 1);
 
-        bool this_test_is_workable = true;
         bool these_tests_are_sufficient = true;
         state.partial_result_counts.resize(Int(1) << (i + 1));
         for (Int& count : state.partial_result_counts) {
@@ -195,21 +229,14 @@ static void attempt_testing(const F& early_terminate, TestingState& state, int n
             assert(cand.test_results < state.partial_result_counts.size());
             Int& count = state.partial_result_counts[cand.test_results];
             count += 1;
-            if (count > limit) {
-                this_test_is_workable = false;
-#if 0
-                printf("- Shortcutting at test #%d because %d remaining tests cannot distinguish %s > %s possibilities...\n",
-                       i, (t - i - 1), std::to_string(count).c_str(), std::to_string(limit).c_str());
-#endif
-                break;
+            if (count > permissible_indistinguishable_cases) {
+                goto abandon_this_line;
             } else if (count > 1) {
                 these_tests_are_sufficient = false;
             }
         }
 
-        if (!this_test_is_workable) {
-            // well shoot, reject
-        } else if (these_tests_are_sufficient) {
+        if (these_tests_are_sufficient) {
             state.solution[i] = m;
             report_solution(state.solution, n, i+1, state.cands);
         } else {
