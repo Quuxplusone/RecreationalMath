@@ -105,6 +105,7 @@ static void report_solution(const std::vector<Int>& solution, int n, int t, cons
         }
         message += format("\n");
     }
+#if 0
     message += format("The test results for each arrangement of wolves are:\n");
     for (auto&& cand : cands) {
             message += format("Candidate wolves:");
@@ -119,6 +120,7 @@ static void report_solution(const std::vector<Int>& solution, int n, int t, cons
             }
             message += format("\n");
     }
+#endif
     throw NktResult(true, message);
 }
 
@@ -256,7 +258,7 @@ static NktResult solve_wolves_impl(int n, int k, int t, const F& early_terminate
     } else {
         // Okay, we have to do it for real.
         std::vector<Candidate> cands = make_candidates(n, k);
-#if PRINT_CANDIDATE_WOLVES
+#if 0
         for (auto&& cand : cands) {
             printf("Candidate wolves:");
             for (int i=0; i < n; ++i) {

@@ -11,6 +11,16 @@
 #include "eytzinger_utils.h"
 #include "wolves.h"
 
+static void log_message(const char *fmt, ...)
+{
+    static std::mutex m;
+    std::lock_guard<std::mutex> lk(m);
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    va_end(ap);
+}
+
 struct WorkItem {
     std::atomic<bool> *stop_working = nullptr;
     int min_t = 0;
@@ -159,7 +169,9 @@ struct Triangle {
         int n = entries.size();
         entries.push_back(std::vector<WorkItem>(n+1));
         entries[n][0].pre_solve(0);
-        entries[n][n-1].pre_solve(n-1);
+        if (n >= 2) {
+            entries[n][n-1].pre_solve(n-1);
+        }
         entries[n][n].pre_solve(0);
         // Fill in as much of this row as we can infer automatically.
         for (int n2 = 0; n2 < n; ++n2) {
@@ -174,7 +186,7 @@ struct Triangle {
             assert(entries[n][k].stop_working == nullptr);
             entries[n][k].stop_working = stop_working;
             entries[n][k].worker_t = (entries[n][k].min_t + entries[n][k].max_t) / 2;
-            printf("Working on n=%d, k=%d, t=%d (min=%d max=%d)\n", n, k, entries[n][k].worker_t, entries[n][k].min_t, entries[n][k].max_t);
+            log_message("Working on n=%d, k=%d, t=%d (min=%d max=%d)\n", n, k, entries[n][k].worker_t, entries[n][k].min_t, entries[n][k].max_t);
             return std::make_tuple(n, k, entries[n][k].worker_t);
         };
         std::unique_lock<std::mutex> lk(mtx);
@@ -258,6 +270,7 @@ static void worker_thread(Triangle& triangle)
     try {
         NktResult result = solve_wolves(n, k, t, early_terminate);
         if (result.success) {
+            log_message("%s", result.message.c_str());
             return triangle.report_positive_result(n, k, t);
         } else {
             return triangle.report_negative_result(n, k, t);
