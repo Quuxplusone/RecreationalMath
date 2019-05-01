@@ -169,6 +169,10 @@ static void attempt_testing(const F& early_terminate, TestingState& state, int n
     // involve AT LEAST this many yet-to-be-tested sheep. Without loss of generality,
     // we can assume that that test is the very next test.
 
+    // Without loss of generality, we can take the test involving the most animals
+    // and run it first.
+    int max_population = (i == 0) ? INT_MAX : popcount(state.solution[0]);
+
     Int starting_m = (i == 0) ? (Int(1) << min_new_pigeons_in_this_hole) - 1 : state.solution[i-1] + 1;
 
     // Information theory tells us that, after this test is performed, if our tests
@@ -185,6 +189,10 @@ static void attempt_testing(const F& early_terminate, TestingState& state, int n
             continue;
         }
         if (popcount(m & ~mask_so_far) < min_new_pigeons_in_this_hole) {
+            continue;
+        }
+
+        if (popcount(m) > max_population) {
             continue;
         }
 
