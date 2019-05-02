@@ -14,7 +14,14 @@ int main(int argc, char **argv)
         int t = atoi(argv[3]);
         NktResult result = solve_wolves(n, k, t);
         printf("%s\n", result.message.c_str());
-    } else {
+    } else if (argc == 5) {
+        int n = atoi(argv[1]);
+        int k = atoi(argv[2]);
+        int t = atoi(argv[3]);
+        int s = atoi(argv[4]);
+        NktResult result = solve_wolves(n, k, t, s);
+        printf("%s\n", result.message.c_str());
+    } else if (argc == 1 || argc == 2) {
         int n = (argc == 2) ? atoi(argv[1]) : 0;
         std::vector<int> triangle;
         switch (n - 1) {
@@ -54,5 +61,11 @@ int main(int argc, char **argv)
             for (int elt : triangle) printf(" %2d", elt);
             printf("\n");
         }
+    } else {
+        printf("Usage:\n");
+        printf("  ./st n k t   -- solve (n,k) in t tests\n");
+        printf("  ./st n k t s -- ...each involving s animals\n");
+        printf("  ./st         -- print the triangle of solutions t(n,k)\n");
+        printf("  ./st r       -- ...having precomputed the first r rows\n");
     }
 }

@@ -134,10 +134,16 @@ Int increment(Int m, int i) {
 }
 
 namespace {
+template<class A, class B>
 struct TestingState {
     std::vector<Candidate> cands;
     std::vector<Int> solution;
     std::vector<Int> partial_result_counts;
+    A early_terminate;
+    B test_is_acceptable;
+
+    explicit TestingState(A a, B b) :
+        early_terminate(std::move(a)), test_is_acceptable(std::move(b)) {}
 
     Int groups_for_sheep(int sheep, int t) const {
         Int result = Int(0);
@@ -152,10 +158,10 @@ struct TestingState {
 };
 } // anonymous namespace
 
-template<class F>
-static void attempt_testing(const F& early_terminate, TestingState& state, int n, int i, int t) {
+template<class A, class B>
+static void attempt_testing(TestingState<A, B>& state, int n, int i, int t) {
     assert(i < t);
-    if (early_terminate()) {
+    if (state.early_terminate()) {
         throw EarlyTerminateException();
     }
 
@@ -182,6 +188,10 @@ static void attempt_testing(const F& early_terminate, TestingState& state, int n
     const Int permissible_indistinguishable_cases = Int(1) << (remaining_holes - 1);
 
     for (Int m = starting_m; m < (Int(1) << (n - 1)) - 1; m = increment(m, i)) {
+
+        if (!state.test_is_acceptable(m)) {
+            continue;
+        }
 
         if (!is_power_of_2_minus_1(mask_so_far | m)) {
             // Testing the 6th animal when we haven't touched the 5th animal yet is pointless.
@@ -249,13 +259,13 @@ static void attempt_testing(const F& early_terminate, TestingState& state, int n
             report_solution(state.solution, n, i+1, state.cands);
         } else {
             state.solution[i] = m;
-            attempt_testing(early_terminate, state, n, i+1, t);
+            attempt_testing(state, n, i+1, t);
         }
     }
 }
 
-template<class F>
-static NktResult solve_wolves_impl(int n, int k, int t, const F& early_terminate)
+template<class A, class B>
+static NktResult solve_wolves_impl(int n, int k, int t, const A& early_terminate, const B& test_is_acceptable)
 {
     // k wolves hiding among n sheep, given t blood tests
 
@@ -302,11 +312,11 @@ static NktResult solve_wolves_impl(int n, int k, int t, const F& early_terminate
             printf("\n");
         }
 #endif
-        TestingState state;
+        TestingState<A, B> state(early_terminate, test_is_acceptable);
         state.cands = std::move(cands);
         state.solution.resize(t);
         try {
-            attempt_testing(early_terminate, state, n, 0, t);
+            attempt_testing(state, n, 0, t);
         } catch (const NktResult& result) {
             assert(result.success == true);
             return result;
@@ -319,10 +329,20 @@ static NktResult solve_wolves_impl(int n, int k, int t, const F& early_terminate
 
 NktResult solve_wolves(int n, int k, int t)
 {
-    return solve_wolves_impl(n, k, t, []() { return false; });
+    auto early_terminate = []() { return false; };
+    auto test_is_acceptable = [](Int) { return true; };
+    return solve_wolves_impl(n, k, t, early_terminate, test_is_acceptable);
+}
+
+NktResult solve_wolves(int n, int k, int t, int s)
+{
+    auto early_terminate = []() { return false; };
+    auto test_is_acceptable = [s](Int m) { return popcount(m) == s; };
+    return solve_wolves_impl(n, k, t, early_terminate, test_is_acceptable);
 }
 
 NktResult solve_wolves(int n, int k, int t, std::function<bool()> early_terminate)
 {
-    return solve_wolves_impl(n, k, t, early_terminate);
+    auto test_is_acceptable = [](Int) { return true; };
+    return solve_wolves_impl(n, k, t, early_terminate, test_is_acceptable);
 }

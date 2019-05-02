@@ -13,3 +13,5 @@ struct NktResult {
 
 NktResult solve_wolves(int n, int k, int t);
 NktResult solve_wolves(int n, int k, int t, std::function<bool()> early_terminate);
+
+NktResult solve_wolves(int n, int k, int t, int s);
