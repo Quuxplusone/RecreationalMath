@@ -173,18 +173,19 @@ static void attempt_testing(TestingState<A, B>& state, int n, int i, int t) {
     Int mask_so_far = Int(0);
     for (int j=0; j < i; ++j) mask_so_far |= state.solution[j];
 
+    // Without loss of generality, we can assume that the tests are performed
+    // in order of "weight" -- no test involves more animals than its predecessor.
+    int max_population = (i == 0) ? INT_MAX : popcount(state.solution[i-1]);
+
     // By the pigeonhole principle, at least one of the tests we have left to run must
-    // involve AT LEAST this many yet-to-be-tested animals. Without loss of generality,
-    // we can assume that that test is the very next test.
+    // involve AT LEAST this many yet-to-be-tested animals.
     int animals_yet_to_test = (n - 1) - popcount(mask_so_far);
     int remaining_tests = (t - i);
-    int min_new_animals_in_this_test = ceil_div(animals_yet_to_test, remaining_tests);
+    if (i != 0 && animals_yet_to_test > max_population * remaining_tests) {
+        return;
+    }
 
-    // Without loss of generality, we can take the test involving the most animals
-    // and run it first.
-    int max_population = (i == 0) ? INT_MAX : popcount(state.solution[0]);
-
-    Int starting_m = (i == 0) ? (Int(1) << min_new_animals_in_this_test) - 1 : state.solution[i-1] + 1;
+    Int starting_m = (i == 0) ? 1 : state.solution[i-1] + 1;
 
     // Information theory tells us that, after this test is performed, if our tests
     // thus far have given identical results for more than 2^(remaining tests)
@@ -201,9 +202,6 @@ static void attempt_testing(TestingState<A, B>& state, int n, int i, int t) {
         if (!is_power_of_2_minus_1(mask_so_far | m)) {
             // Testing the 6th animal when we haven't touched the 5th animal yet is pointless.
             // Without loss of generality we can assume the animals are introduced in order.
-            continue;
-        }
-        if (popcount(m & ~mask_so_far) < min_new_animals_in_this_test) {
             continue;
         }
         if (popcount(m) > max_population) {
