@@ -101,17 +101,16 @@ static constexpr bool T_100_5_test_contains_animal_(int t, int i) {
         case 2: return (t % 11) == ((i+2*(i/11)) % 11);
         case 3: return (t % 11) == ((i+3*(i/11)) % 11);
         case 4: return (t % 11) == ((i+4*(i/11)) % 11);
-        case 5: return (t % 11) == ((i+5*(i/11)) % 11);
+        case 5: return ((t - 55) % 9) == (i / 11);
     }
     assert(false);
 }
 struct T_100_5_cache {
-    char data_[66][100];
+    char data_[63][100];
 };
 static constexpr T_100_5_cache T_100_5_cacheit_() {
-//    std::array<std::array<char, 100>, 66> result {};
     T_100_5_cache result {};
-    for (int j = 0; j < 66; ++j) {
+    for (int j = 0; j < 63; ++j) {
         for (int i = 0; i < 100; ++i) {
             result.data_[j][i] = T_100_5_test_contains_animal_(j, i);
         }
@@ -122,7 +121,7 @@ struct T_100_5 {
     static constexpr int nCk = 75287520;
     static constexpr int n = 100;
     static constexpr int k = 5;
-    static constexpr int t = 66;
+    static constexpr int t = 63;
 
     static constexpr const T_100_5_cache cached_ = T_100_5_cacheit_();
 
