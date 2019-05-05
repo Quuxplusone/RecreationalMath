@@ -4,6 +4,9 @@
 #include <map>
 #include <stdio.h>
 #include <vector>
+#if USE_MEMORY_RESOURCE
+#include <memory_resource>
+#endif
 
 using Int = unsigned long long;
 
@@ -14,10 +17,22 @@ static constexpr Int choose(int n, int k) {
     return choose(n-1, k) + choose(n-1, k-1);
 }
 
+template<class TS, class = void>
 struct TestResults {
     std::vector<bool> data_;
     void push_back(bool b) {
         data_.push_back(b);
+    }
+    friend bool operator<(const TestResults& a, const TestResults& b) {
+        return a.data_ < b.data_;
+    }
+};
+template<class TS>
+struct TestResults<TS, std::enable_if_t<(TS::t <= 64)>> {
+    uint64_t data_;
+    void push_back(bool b) {
+        data_ <<= 1;
+        data_ |= uint64_t(b);
     }
     friend bool operator<(const TestResults& a, const TestResults& b) {
         return a.data_ < b.data_;
@@ -73,6 +88,16 @@ struct WolfArrangement {
         assert(false);
     }
 };
+
+template<class TS>
+WolfArrangement wolf_arrangement_from_index(int id) {
+    assert(0 <= id && id < TS::nCk);
+    WolfArrangement result(TS::k);
+    for (int i=0; i < id; ++i) {
+        result.increment<TS>();
+    }
+    return result;
+}
 
 struct T_8_2 {
     static constexpr int nCk = choose(8,2);
@@ -144,8 +169,8 @@ void print_wolves(const WolfArrangement& w) {
 }
 
 template<class TS>
-TestResults run_tests(const WolfArrangement& w) {
-    TestResults r;
+TestResults<TS> run_tests(const WolfArrangement& w) {
+    TestResults<TS> r;
     for (int i=0; i < TS::t; ++i) {
         r.push_back(w.test_is_wolfy<TS>(i));
     }
@@ -155,14 +180,18 @@ TestResults run_tests(const WolfArrangement& w) {
 template<class TS>
 void do_it() {
     WolfArrangement wolves(TS::k);
-    std::map<TestResults, WolfArrangement> tr;
-    tr.insert(std::make_pair(run_tests<TS>(wolves), wolves));
-    for (Int i=1; i < TS::nCk; ++i) {
+#if USE_MEMORY_RESOURCE
+    std::pmr::map<TestResults<TS>, int> tr;
+#else
+    std::map<TestResults<TS>, int> tr;
+#endif
+    tr.insert(std::make_pair(run_tests<TS>(wolves), 0));
+    for (Int id=1; id < TS::nCk; ++id) {
         wolves.increment<TS>();
-        auto ii = tr.insert(std::make_pair(run_tests<TS>(wolves), wolves));
+        auto ii = tr.insert(std::make_pair(run_tests<TS>(wolves), id));
         if (ii.second == false) {
             printf("Failure! These wolf arrangements cannot be distinguished:\n");
-            print_wolves<TS>(ii.first->second);
+            print_wolves<TS>(wolf_arrangement_from_index<TS>(ii.first->second));
             print_wolves<TS>(wolves);
             return;
         }
@@ -171,5 +200,9 @@ void do_it() {
 }
 
 int main() {
+#if USE_MEMORY_RESOURCE
+    std::pmr::monotonic_buffer_resource mr(1'000'000);
+    std::pmr::set_default_resource(&mr);
+#endif
     do_it<T_100_5>();
 }
