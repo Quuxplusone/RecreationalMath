@@ -156,6 +156,42 @@ struct T_100_5 {
 };
 const T_100_5_cache T_100_5::cached_;
 
+struct T_26_3 {
+    static constexpr int nCk = choose(26, 3);
+    static constexpr int n = 26;
+    static constexpr int k = 3;
+    static constexpr int t = 19;
+
+    static bool test_contains_animal(int t, int i) {
+        if (i == 25) return false;
+        switch (t / 5) {
+            case 0: return (t % 5) == ((i+0*(i/5)) % 5);
+            case 1: return (t % 5) == ((i+1*(i/5)) % 5);
+            case 2: return (t % 5) == ((i+2*(i/5)) % 5);
+            case 3: return (t % 5) == ((i+3*(i/5)) % 5);
+        }
+        assert(false);
+    }
+};
+
+struct T_21_3 {
+    static constexpr int nCk = choose(21, 3);
+    static constexpr int n = 21;
+    static constexpr int k = 3;
+    static constexpr int t = 19;
+
+    static bool test_contains_animal(int t, int i) {
+        if (i == 20) return false;
+        switch (t / 5) {
+            case 0: return (t % 5) == ((i+0*(i/5)) % 5);
+            case 1: return (t % 5) == ((i+1*(i/5)) % 5);
+            case 2: return (t % 5) == ((i+2*(i/5)) % 5);
+            case 3: return (t % 5) == ((i+3*(i/5)) % 5);
+        }
+        assert(false);
+    }
+};
+
 template<class TS>
 void print_wolves(const WolfArrangement& w) {
     for (int i=0; i < TS::n; ++i) {
@@ -178,7 +214,7 @@ TestResults<TS> run_tests(const WolfArrangement& w) {
 }
 
 template<class TS>
-void do_it() {
+bool verify_strategy() {
     WolfArrangement wolves(TS::k);
 #if USE_MEMORY_RESOURCE
     std::pmr::map<TestResults<TS>, int> tr;
@@ -193,10 +229,23 @@ void do_it() {
             printf("Failure! These wolf arrangements cannot be distinguished:\n");
             print_wolves<TS>(wolf_arrangement_from_index<TS>(ii.first->second));
             print_wolves<TS>(wolves);
-            return;
+            return false;
         }
     }
     printf("Success!\n");
+    return true;
+}
+
+template<class TS>
+void print_strategy() {
+    for (int i = 0; i < TS::t; ++i) {
+        printf("  %d.%s", i+1, (i >= 9) ? "" : " ");
+        for (int sheep = 0; sheep < TS::n; ++sheep) {
+            bool this_sheep_is_used = TS::test_contains_animal(i, sheep);
+            printf(" %c", this_sheep_is_used ? 'T' : '.');
+        }
+        printf("\n");
+    }
 }
 
 int main() {
@@ -204,5 +253,7 @@ int main() {
     std::pmr::monotonic_buffer_resource mr(1'000'000);
     std::pmr::set_default_resource(&mr);
 #endif
-    do_it<T_100_5>();
+    if (verify_strategy<T_21_3>()) {
+        print_strategy<T_21_3>();
+    }
 }
