@@ -150,15 +150,16 @@ struct TestingState {
     explicit TestingState(A a, B b) :
         early_terminate(std::move(a)), test_is_acceptable(std::move(b)) {}
 
-    Int groups_for_sheep(int sheep, int t) const {
-        Int result = Int(0);
+    bool animals_in_same_group(int s1, int s2, int t) const {
+        assert(s2 == s1 + 1);
+        Int mask = (Int(3) << s1);  // s1 and s2
+        Int okay_mask = (Int(1) << s1);  // s1 is present, s2 is not
         for (int i=0; i < t; ++i) {
-            if (solution[i] & (Int(1) << sheep)) {
-                result |= Int(1);
+            if ((solution[i] & mask) == okay_mask) {
+                return false;
             }
-            result <<= 1;
         }
-        return result;
+        return true;
     }
 };
 } // anonymous namespace
@@ -217,7 +218,7 @@ static void attempt_testing(TestingState<A, B>& state, int n, int i, int t) {
             bool sheep2_in_group = (m & (Int(1) << s2)) != 0;
             bool sheep1_in_group = (m & (Int(1) << s1)) != 0;
             if (sheep2_in_group && !sheep1_in_group) {
-                if (state.groups_for_sheep(s1, i) == state.groups_for_sheep(s2, i)) {
+                if (state.animals_in_same_group(s1, s2, i)) {
                     goto abandon_this_line;
                 }
             }
