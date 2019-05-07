@@ -178,7 +178,7 @@ struct T_21_3 {
     static constexpr int nCk = choose(21, 3);
     static constexpr int n = 21;
     static constexpr int k = 3;
-    static constexpr int t = 19;
+    static constexpr int t = 18;
 
     static bool test_contains_animal(int t, int i) {
         if (i == 20) return false;
@@ -186,7 +186,7 @@ struct T_21_3 {
             case 0: return (t % 5) == ((i+0*(i/5)) % 5);
             case 1: return (t % 5) == ((i+1*(i/5)) % 5);
             case 2: return (t % 5) == ((i+2*(i/5)) % 5);
-            case 3: return (t % 5) == ((i+3*(i/5)) % 5);
+            case 3: return (t % 5) == (i / 5);
         }
         assert(false);
     }
