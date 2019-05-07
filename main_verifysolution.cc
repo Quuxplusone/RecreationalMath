@@ -192,6 +192,24 @@ struct T_21_3 {
     }
 };
 
+struct T_17_3 {
+    static constexpr int nCk = choose(17, 3);
+    static constexpr int n = 17;
+    static constexpr int k = 3;
+    static constexpr int t = 15;
+
+    static bool test_contains_animal(int t, int i) {
+        if (i == 16) return false;
+        switch (t / 4) {
+            case 0: return (t % 4) == "aaaabbbbccccdddd"[i] - 'a';
+            case 1: return (t % 4) == "abcdabcdabcdabcd"[i] - 'a';
+            case 2: return (t % 4) == "abcdbadccdabdcba"[i] - 'a';
+            case 3: return (t % 4) == "abcddcbabadccdab"[i] - 'a';
+        }
+        assert(false);
+    }
+};
+
 template<class TS>
 void print_wolves(const WolfArrangement& w) {
     for (int i=0; i < TS::n; ++i) {
