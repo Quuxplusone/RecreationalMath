@@ -156,6 +156,33 @@ struct T_100_5 {
 };
 const T_100_5_cache T_100_5::cached_;
 
+struct T_111_3 {
+    static constexpr int nCk = 221815;
+    static constexpr int n = 111;
+    static constexpr int k = 3;
+    static constexpr int t = 37;
+
+    static bool test_contains_animal(int t, int n) {
+        // Each animal n is tested exactly 4 times;
+        // no pair of animals is tested twice together.
+        // Thanks to @Elaqqad for this example!
+        // https://math.stackexchange.com/questions/3195281#comment7183199_3488985
+        int i = n % 3;
+        int j = n / 3;
+        assert(0 <= j && j < 37);
+        int D[3][4] = {
+            {0, 1, 3, 24},
+            {0, 10, 18, 30},
+            {0, 4, 26, 32},
+        };
+        if (t == (D[i][0] + j) % 37) return true;
+        if (t == (D[i][1] + j) % 37) return true;
+        if (t == (D[i][2] + j) % 37) return true;
+        if (t == (D[i][3] + j) % 37) return true;
+        return false;
+    }
+};
+
 struct T_26_3 {
     static constexpr int nCk = choose(26, 3);
     static constexpr int n = 26;
@@ -271,7 +298,8 @@ int main() {
     std::pmr::monotonic_buffer_resource mr(1'000'000);
     std::pmr::set_default_resource(&mr);
 #endif
-    if (verify_strategy<T_21_3>()) {
-        print_strategy<T_21_3>();
+    using T = T_111_3;
+    if (verify_strategy<T>()) {
+        print_strategy<T>();
     }
 }
