@@ -157,10 +157,25 @@ Here's what I know about the resulting sequence:
     n=11  0  4  8 10 10 10 10 10 10 10 10  0
     n=12  0  4  8 11 11 11 11 11 11 11 11 11  0
     n=13  0  4  8 12 12 12 12 12 12 12 12 12 12  0
-    n=14  0  4  9  . 13 13 13 13 13 13 13 13 13 13  0
-    n=15  0  4  9  . 14 14 14 14 14 14 14 14 14 14 14  0
-    n=16  0  4  .  .  . 15 15 15 15 15 15 15 15 15 15 15  0
-    n=17  0  5  .  .  . 16 16 16 16 16 16 16 16 16 16 16 16  0
-    n=18  0  5  .  .  .  . 17 17 17 17 17 17 17 17 17 17 17 17  0
-    n=19  0  5  .  .  .  . 18 18 18 18 18 18 18 18 18 18 18 18 18  0
-    n=20  0  5  .  .  .  .  . 19 19 19 19 19 19 19 19 19 19 19 19 19  0
+    n=14  0  4  9 12 13 13 13 13 13 13 13 13 13 13  0
+    n=15  0  4  9 13 14 14 14 14 14 14 14 14 14 14 14  0
+    n=16  0  4  9  .  . 15 15 15 15 15 15 15 15 15 15 15  0
+    n=17  0  5  9  .  . 16 16 16 16 16 16 16 16 16 16 16 16  0
+    n=18  0  5 10  .  .  . 17 17 17 17 17 17 17 17 17 17 17 17  0
+    n=19  0  5 10  .  .  . 18 18 18 18 18 18 18 18 18 18 18 18 18  0
+    n=20  0  5 10  .  .  .  . 19 19 19 19 19 19 19 19 19 19 19 19 19  0
+
+Column $k=1$ is simply $\ceil{\lg (n\choose k)}$.
+
+Column $k=2$ is related to [OEIS sequence A054961](https://oeis.org/A054961),
+the maximal number of columns $n$ in a 2-separable matrix with $t$ rows.
+Dmitry Kamenetsky has determined that
+$t(22, 2)\le 10$, $t(31, 2)\le 11$, and $t(46, 2)\le 12$.
+Zhao Hui Du adds that
+$t(55, 2)\le 13$, $t(63, 2)\le 14$, etc.;
+see the OEIS for more details.
+
+Column $k=3$ is related to [OEIS sequence A290492](https://oeis.org/A290492),
+the maximal number of columns $n$ in a 3-separable matrix with $t$ rows.
+Dmitry Kamenetsky has determined that
+$t(15, 3)\le 13$.

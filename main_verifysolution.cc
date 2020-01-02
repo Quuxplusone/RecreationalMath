@@ -10,11 +10,26 @@
 
 using Int = unsigned long long;
 
-static constexpr Int choose(int n, int k) {
-    if (k > n) return Int(0);
-    if (k == 0 || k == n) return Int(1);
-    if (k == 1 || k == n-1) return Int(n);
-    return choose(n-1, k) + choose(n-1, k-1);
+template<int n, int k>
+static constexpr Int choose() {
+    Int grid[n+1][k+1] = {};
+    auto compute = [&](int ni, int ki) {
+        if (ki > ni) return Int(0);
+        if (ki == 0 || ki == ni) return Int(1);
+        if (ki == 1 || ki == ni-1) return Int(ni);
+        if (ni-1 < 0) throw;
+        if (ki-1 < 0) throw;
+        return grid[ni-1][ki] + grid[ni-1][ki-1];
+    };
+    for (int i = 0; i < n+k+2; ++i) {
+        for (int ni = 0; ni <= i && ni <= n; ++ni) {
+            int ki = i - ni;
+            if (ki <= k) {
+                grid[ni][ki] = compute(ni, ki);
+            }
+        }
+    }
+    return grid[n][k];
 }
 
 template<class TS, class = void>
@@ -33,6 +48,17 @@ struct TestResults<TS, std::enable_if_t<(TS::t <= 64)>> {
     void push_back(bool b) {
         data_ <<= 1;
         data_ |= uint64_t(b);
+    }
+    friend bool operator<(const TestResults& a, const TestResults& b) {
+        return a.data_ < b.data_;
+    }
+};
+template<class TS>
+struct TestResults<TS, std::enable_if_t<(64 < TS::t && TS::t <= 128)>> {
+    unsigned __int128 data_;
+    void push_back(bool b) {
+        data_ <<= 1;
+        data_ |= (unsigned __int128)(b);
     }
     friend bool operator<(const TestResults& a, const TestResults& b) {
         return a.data_ < b.data_;
@@ -91,7 +117,7 @@ struct WolfArrangement {
 
 template<class TS>
 WolfArrangement wolf_arrangement_from_index(int id) {
-    assert(0 <= id && id < TS::nCk);
+    assert((0 <= id && id < choose<TS::n, TS::k>()));
     WolfArrangement result(TS::k);
     for (int i=0; i < id; ++i) {
         result.increment<TS>();
@@ -100,7 +126,6 @@ WolfArrangement wolf_arrangement_from_index(int id) {
 }
 
 struct T_8_2 {
-    static constexpr int nCk = choose(8,2);
     static constexpr int n = 8;
     static constexpr int k = 2;
     static constexpr int t = 6;
@@ -117,6 +142,31 @@ struct T_8_2 {
     }
 };
 
+struct T_14_3 {
+    // Dmitry Kamenetsky, https://oeis.org/A290492
+    static constexpr int n = 14;
+    static constexpr int k = 3;
+    static constexpr int t = 12;
+    static bool test_contains_animal(int t, int i) {
+        switch (i) {
+            case  0: return "100000001100"[t] == '1';
+            case  1: return "000001010001"[t] == '1';
+            case  2: return "100101100000"[t] == '1';
+            case  3: return "010000110100"[t] == '1';
+            case  4: return "000110000101"[t] == '1';
+            case  5: return "011100000000"[t] == '1';
+            case  6: return "001000101001"[t] == '1';
+            case  7: return "000000000000"[t] == '1';
+            case  8: return "101010010000"[t] == '1';
+            case  9: return "001001000110"[t] == '1';
+            case 10: return "000100011010"[t] == '1';
+            case 11: return "000010100010"[t] == '1';
+            case 12: return "110000000011"[t] == '1';
+            case 13: return "010011001000"[t] == '1';
+        }
+        assert(false);
+    }
+};
 
 static constexpr bool T_100_5_test_contains_animal_(int t, int i) {
     if (i == 99) return false;
@@ -143,7 +193,6 @@ static constexpr T_100_5_cache T_100_5_cacheit_() {
     return result;
 }
 struct T_100_5 {
-    static constexpr int nCk = 75287520;
     static constexpr int n = 100;
     static constexpr int k = 5;
     static constexpr int t = 63;
@@ -157,7 +206,6 @@ struct T_100_5 {
 const T_100_5_cache T_100_5::cached_;
 
 struct T_111_3 {
-    static constexpr int nCk = 221815;
     static constexpr int n = 111;
     static constexpr int k = 3;
     static constexpr int t = 37;
@@ -183,8 +231,64 @@ struct T_111_3 {
     }
 };
 
+struct T_273_5_helper {
+    static constexpr bool test_contains_animal(int t, int n) {
+        // Each animal n is tested exactly 6 times;
+        // no pair of animals is tested twice together.
+        // Table 1 in "Parallel Filter-Based Feature Selection Based on Balanced Incomplete Block Designs"
+        // (Salmerón, Madsen, et al., ECAI 2016).
+        // https://books.google.com/books?id=xfboDAAAQBAJ&pg=PA747
+        int i = n % 3;
+        int j = n / 3;
+        assert(0 <= j && j < 91);
+        int D[3][6] = {
+            {0, 1, 3, 7, 25, 38},
+            {0, 5, 20, 32, 46, 75},
+            {0, 8, 17, 47, 57, 80},
+        };
+        if (t == (D[i][0] + j) % 91) return true;
+        if (t == (D[i][1] + j) % 91) return true;
+        if (t == (D[i][2] + j) % 91) return true;
+        if (t == (D[i][3] + j) % 91) return true;
+        if (t == (D[i][4] + j) % 91) return true;
+        if (t == (D[i][5] + j) % 91) return true;
+        return false;
+    }
+
+    static constexpr bool test_should_be_run(int t, int n) {
+        for (int i=0; i < n; ++i) {
+            if (test_contains_animal(t, i)) return true;
+        }
+        return false;
+    }
+
+    static constexpr int count_useful_tests(int n) {
+        int count = 0;
+        for (int t=0; t < 91; ++t) {
+            count += test_should_be_run(t, n);
+        }
+        return count;
+    };
+};
+
+struct T_273_5 : T_273_5_helper {
+    static constexpr int n = 100;  // works for up to 273
+    static constexpr int k = 5;
+    static constexpr int t = count_useful_tests(n);
+
+    static bool test_contains_animal(int t, int i) {
+        for (int tt = 0; tt < 91; ++tt) {
+            if (test_should_be_run(tt, n)) {
+                if (t-- == 0) {
+                    return T_273_5_helper::test_contains_animal(tt, i);
+                }
+            }
+        }
+        assert(false);
+    }
+};
+
 struct T_26_3 {
-    static constexpr int nCk = choose(26, 3);
     static constexpr int n = 26;
     static constexpr int k = 3;
     static constexpr int t = 19;
@@ -202,7 +306,6 @@ struct T_26_3 {
 };
 
 struct T_21_3 {
-    static constexpr int nCk = choose(21, 3);
     static constexpr int n = 21;
     static constexpr int k = 3;
     static constexpr int t = 18;
@@ -220,7 +323,6 @@ struct T_21_3 {
 };
 
 struct T_17_3 {
-    static constexpr int nCk = choose(17, 3);
     static constexpr int n = 17;
     static constexpr int k = 3;
     static constexpr int t = 15;
@@ -267,7 +369,7 @@ bool verify_strategy() {
     std::map<TestResults<TS>, int> tr;
 #endif
     tr.insert(std::make_pair(run_tests<TS>(wolves), 0));
-    for (Int id=1; id < TS::nCk; ++id) {
+    for (Int id=1; id < choose<TS::n, TS::k>(); ++id) {
         wolves.increment<TS>();
         auto ii = tr.insert(std::make_pair(run_tests<TS>(wolves), id));
         if (ii.second == false) {
