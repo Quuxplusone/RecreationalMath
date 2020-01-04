@@ -192,7 +192,7 @@ static constexpr T_100_5_cache T_100_5_cacheit_() {
     }
     return result;
 }
-struct T_100_5 {
+struct T_100_5_noedne {
     static constexpr int n = 100;
     static constexpr int k = 5;
     static constexpr int t = 63;
@@ -203,7 +203,7 @@ struct T_100_5 {
         return cached_.data_[t][i];
     }
 };
-const T_100_5_cache T_100_5::cached_;
+const T_100_5_cache T_100_5_noedne::cached_;
 
 struct T_111_3 {
     static constexpr int n = 111;
@@ -285,6 +285,186 @@ struct T_273_5 : T_273_5_helper {
             }
         }
         assert(false);
+    }
+};
+
+struct T_96_5 {
+    static constexpr int n = 96;
+    static constexpr int k = 5;
+    static constexpr int t = 60;
+
+    struct Point {
+        // a in {0, 1}
+        // b in {0, 1, 2}
+        // c in {0, 1, inf}
+        // d in {-inf, 0, 1, 2, 3, inf}
+        int a, b, c, d;
+        friend bool operator<(Point p, Point q) {
+            return std::tie(p.a, p.b, p.c, p.d) < std::tie(q.a, q.b, q.c, q.d);
+        }
+        friend bool operator==(Point p, Point q) {
+            return std::tie(p.a, p.b, p.c, p.d) == std::tie(q.a, q.b, q.c, q.d);
+        }
+        friend bool operator!=(Point p, Point q) {
+            return std::tie(p.a, p.b, p.c, p.d) != std::tie(q.a, q.b, q.c, q.d);
+        }
+        friend Point operator+(Point p, Point q) {
+            assert(!(p.d == 99 && q.d == -99));
+            assert(!(p.d == -99 && q.d == 99));
+            return Point{
+                (p.a + q.a) % 2,
+                (p.b + q.b) % 3,
+                (p.c == 99 || q.c == 99) ? 99 : ((p.c + q.c) % 2),
+                (p.d == 99 || q.d == 99) ? 99 : (p.d == -99 || q.d == -99) ? -99 : ((p.d + q.d) % 4),
+            };
+        }
+    };
+
+    using Block = std::array<Point, 6>;
+
+    static auto enumerate_blocks_and_points()
+        -> std::pair<std::vector<Block>, std::vector<Point>>
+    {
+        Block base_blocks[4] = {
+            {{ Point{0,0,0,0}, Point{0,1,0,2}, Point{0,2,1,0}, Point{1,0,1,1}, Point{1,1,1,2}, Point{1,2,99,99} }},
+            {{ Point{0,0,0,0}, Point{0,1,0,1}, Point{1,0,0,2}, Point{1,1,0,2}, Point{1,2,1,1}, Point{0,2,99,99} }},
+            {{ Point{0,0,0,0}, Point{0,1,0,0}, Point{0,2,1,1}, Point{1,0,0,0}, Point{1,1,0,3}, Point{1,2,99,-99} }},
+            {{ Point{0,0,0,0}, Point{0,1,0,3}, Point{1,0,1,3}, Point{1,1,1,1}, Point{1,2,0,3}, Point{0,2,99,-99} }},
+        };
+        std::set<Block> all_blocks;
+        std::set<Point> all_points;
+        for (const Block& block : base_blocks) {
+            for (int i=0; i < 3; ++i) {
+                for (int j = 0; j < 2; ++j) {
+                    for (int k = 0; k < 4; ++k) {
+                        Block new_block = block;
+                        for (Point& p : new_block) {
+                            p = p + Point{0, i, j, k};
+                            all_points.insert(p);
+                        }
+                        all_blocks.insert(new_block);
+                    }
+                }
+            }
+        }
+        assert(all_blocks.size() == 96);
+        assert(all_points.size() == 60);
+        return {
+            std::vector<Block>(all_blocks.begin(), all_blocks.end()),
+            std::vector<Point>(all_points.begin(), all_points.end())
+        };
+    }
+
+    static bool test_contains_animal(int t, int i) {
+        static auto bp = enumerate_blocks_and_points();
+        const Block& animal = bp.first[i];
+        const Point& test = bp.second[t];
+        return std::count(animal.begin(), animal.end(), test);
+    }
+};
+
+struct T_100_5_elaqqad {
+    static constexpr int n = 100;
+    static constexpr int k = 5;
+    static constexpr int t = 59;  // if t=60, this works for n=104
+
+    struct Point {
+        // a in {0, 1}
+        // b in {0, 1, 2}
+        // c in {0, 1, inf}
+        // d in {-inf, 0, 1, 2, 3, inf}
+        int a, b, c, d;
+        friend bool operator<(Point p, Point q) {
+            return std::tie(p.a, p.b, p.c, p.d) < std::tie(q.a, q.b, q.c, q.d);
+        }
+        friend bool operator==(Point p, Point q) {
+            return std::tie(p.a, p.b, p.c, p.d) == std::tie(q.a, q.b, q.c, q.d);
+        }
+        friend bool operator!=(Point p, Point q) {
+            return std::tie(p.a, p.b, p.c, p.d) != std::tie(q.a, q.b, q.c, q.d);
+        }
+        friend Point operator+(Point p, Point q) {
+            assert(!(p.d == 99 && q.d == -99));
+            assert(!(p.d == -99 && q.d == 99));
+            return Point{
+                (p.a + q.a) % 2,
+                (p.b + q.b) % 3,
+                (p.c == 99 || q.c == 99) ? 99 : ((p.c + q.c) % 2),
+                (p.d == 99 || q.d == 99) ? 99 : (p.d == -99 || q.d == -99) ? -99 : ((p.d + q.d) % 4),
+            };
+        }
+    };
+
+    using Block = std::vector<Point>;
+
+    static auto enumerate_blocks_and_points()
+        -> std::array<uint64_t, 104>
+    {
+        Block base_blocks[4] = {
+            {{ Point{0,0,0,0}, Point{0,1,0,2}, Point{0,2,1,0}, Point{1,0,1,1}, Point{1,1,1,2}, Point{1,2,99,99} }},
+            {{ Point{0,0,0,0}, Point{0,1,0,1}, Point{1,0,0,2}, Point{1,1,0,2}, Point{1,2,1,1}, Point{0,2,99,99} }},
+            {{ Point{0,0,0,0}, Point{0,1,0,0}, Point{0,2,1,1}, Point{1,0,0,0}, Point{1,1,0,3}, Point{1,2,99,-99} }},
+            {{ Point{0,0,0,0}, Point{0,1,0,3}, Point{1,0,1,3}, Point{1,1,1,1}, Point{1,2,0,3}, Point{0,2,99,-99} }},
+        };
+        std::set<Block> all_blocks;
+        std::set<Point> all_points;
+        for (const Block& block : base_blocks) {
+            for (int i=0; i < 3; ++i) {
+                for (int j = 0; j < 2; ++j) {
+                    for (int k = 0; k < 4; ++k) {
+                        Block new_block = block;
+                        for (Point& p : new_block) {
+                            p = p + Point{0, i, j, k};
+                            all_points.insert(p);
+                        }
+                        std::sort(new_block.begin(), new_block.end());
+                        all_blocks.insert(new_block);
+                    }
+                }
+            }
+        }
+        printf("%zu %zu\n", all_blocks.size(), all_points.size());
+        assert(all_blocks.size() == 96);
+        assert(all_points.size() == 60);
+        Block more_blocks[8] = {
+            { Point{0,0,99,99}, Point{0,1,99,99}, Point{0,2,99,99}, Point{1,0,99,-99}, Point{1,1,99,-99}, Point{1,2,99,-99} },
+            { Point{0,0,99,-99}, Point{0,1,99,-99}, Point{0,2,99,-99}, Point{1,0,99,99}, Point{1,1,99,99}, Point{1,2,99,99} },
+            { Point{0,0,0,0}, Point{0,0,0,1}, Point{0,0,0,2}, Point{0,0,0,3}, Point{0,0,1,0}, Point{0,0,1,1}, Point{0,0,1,2}, Point{0,0,1,3} },
+            { Point{0,1,0,0}, Point{0,1,0,1}, Point{0,1,0,2}, Point{0,1,0,3}, Point{0,1,1,0}, Point{0,1,1,1}, Point{0,1,1,2}, Point{0,1,1,3} },
+            { Point{0,2,0,0}, Point{0,2,0,1}, Point{0,2,0,2}, Point{0,2,0,3}, Point{0,2,1,0}, Point{0,2,1,1}, Point{0,2,1,2}, Point{0,2,1,3} },
+            { Point{1,0,0,0}, Point{1,0,0,1}, Point{1,0,0,2}, Point{1,0,0,3}, Point{1,0,1,0}, Point{1,0,1,1}, Point{1,0,1,2}, Point{1,0,1,3} },
+            { Point{1,1,0,0}, Point{1,1,0,1}, Point{1,1,0,2}, Point{1,1,0,3}, Point{1,1,1,0}, Point{1,1,1,1}, Point{1,1,1,2}, Point{1,1,1,3} },
+            { Point{1,2,0,0}, Point{1,2,0,1}, Point{1,2,0,2}, Point{1,2,0,3}, Point{1,2,1,0}, Point{1,2,1,1}, Point{1,2,1,2}, Point{1,2,1,3} },
+        };
+        for (const Block& block : more_blocks) {
+            all_blocks.insert(block);
+            for (const Point& p : block) all_points.insert(p);
+        }
+        printf("%zu %zu\n", all_blocks.size(), all_points.size());
+        assert(all_blocks.size() == 104);
+        assert(all_points.size() == 60);
+        return convert_to_array(
+            std::vector<Block>(all_blocks.begin(), all_blocks.end()),
+            std::vector<Point>(all_points.begin(), all_points.end())
+        );
+    }
+
+    static std::array<uint64_t, 104> convert_to_array(std::vector<Block> blocks, std::vector<Point> points)
+    {
+        std::array<uint64_t, 104> tests_per_animal = {};
+        for (int i=0; i < 104; ++i) {
+            for (int t=0; t < 60; ++t) {
+                if (std::count(blocks[i].begin(), blocks[i].end(), points[t]) != 0) {
+                    tests_per_animal[i] |= (1uLL << t);
+                }
+            }
+        }
+        return tests_per_animal;
+    }
+
+    static bool test_contains_animal(int t, int i) {
+        static auto tpa = enumerate_blocks_and_points();
+        return (tpa[i] & (1uLL << t)) != 0;
     }
 };
 
@@ -386,12 +566,14 @@ bool verify_strategy() {
 template<class TS>
 void print_strategy() {
     for (int i = 0; i < TS::t; ++i) {
-        printf("  %d.%s", i+1, (i >= 9) ? "" : " ");
+        printf("    %2d ", i+1);
+        int count = 0;
         for (int sheep = 0; sheep < TS::n; ++sheep) {
             bool this_sheep_is_used = TS::test_contains_animal(i, sheep);
-            printf(" %c", this_sheep_is_used ? 'T' : '.');
+            count += int(this_sheep_is_used);
+            printf("%c", this_sheep_is_used ? '1' : '.');
         }
-        printf("\n");
+        printf("  (%d)\n", count);
     }
 }
 
