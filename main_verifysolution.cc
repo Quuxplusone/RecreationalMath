@@ -1,5 +1,5 @@
 #include <array>
-#include <assert.h>
+#include <cassert>
 #include <set>
 #include <map>
 #include <stdio.h>
@@ -423,7 +423,6 @@ struct T_100_5_elaqqad {
                 }
             }
         }
-        printf("%zu %zu\n", all_blocks.size(), all_points.size());
         assert(all_blocks.size() == 96);
         assert(all_points.size() == 60);
         Block more_blocks[8] = {
@@ -440,7 +439,6 @@ struct T_100_5_elaqqad {
             all_blocks.insert(block);
             for (const Point& p : block) all_points.insert(p);
         }
-        printf("%zu %zu\n", all_blocks.size(), all_points.size());
         assert(all_blocks.size() == 104);
         assert(all_points.size() == 60);
         return convert_to_array(
@@ -630,21 +628,20 @@ bool verify_strategy() {
             return false;
         }
     }
-    printf("Success!\n");
     return true;
 }
 
 template<class TS>
-void print_strategy() {
+void print_strategy(bool line_numbers) {
     for (int i = 0; i < TS::t; ++i) {
-        printf("    %2d ", i+1);
-        int count = 0;
+        if (line_numbers) {
+            printf("    %2d ", i+1);
+        }
         for (int sheep = 0; sheep < TS::n; ++sheep) {
             bool this_sheep_is_used = TS::test_contains_animal(i, sheep);
-            count += int(this_sheep_is_used);
             printf("%c", this_sheep_is_used ? '1' : '.');
         }
-        printf("  (%d)\n", count);
+        printf("\n");
     }
 }
 
@@ -655,6 +652,6 @@ int main() {
 #endif
     using T = T_100_5_elaqqad_for_dummies;
     if (verify_strategy<T>()) {
-        print_strategy<T>();
+        print_strategy<T>(false);
     }
 }
