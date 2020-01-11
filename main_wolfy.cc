@@ -49,6 +49,39 @@ struct Strategy {
         }
         return std::move(oss).str();
     }
+
+    static std::string to_hex(unsigned long long bits) {
+        std::ostringstream oss;
+        oss << std::hex << bits;
+        return std::move(oss).str();
+    }
+
+    std::string to_emathgroup_string(int n, int d) const {
+        // This format comes from Zhao Hui Du, https://emathgroup.github.io/blog/two-poisoned-wine
+        std::ostringstream oss;
+        oss << "N=" << n << " D=" << d << " T=" << t;
+        oss << " guaranteed_best=" << ((guaranteed_best == GuaranteedBest::Yes) ? '1' : '0') << '\n';
+        oss << "emathgroup";
+        int wordwrap = 10;
+        auto concrete_tests = tests();
+        for (int c=0; c < n; ++c) {
+            unsigned long long bits = 0;
+            for (int r = t-1; r >= 0; --r) {
+                bits = ((bits << 1) | (concrete_tests[r][c] == '1'));
+            }
+            std::string hexbits = to_hex(bits);
+            if (wordwrap + 1 + hexbits.size() > 75) {
+                oss << "\n" << hexbits;
+                wordwrap = hexbits.size();
+            } else {
+                oss << " " << hexbits;
+                wordwrap += 1 + hexbits.size();
+            }
+        }
+        oss << "\n";
+        return std::move(oss).str();
+    }
+
 };
 
 std::shared_ptr<Strategy> empty_strategy()
@@ -211,13 +244,34 @@ void read_solutions_from_file(const char *filename, std::map<ND, std::shared_ptr
     while (std::getline(infile, line)) {
         if (line.compare(0, 2, "N=") == 0) {
             int n, d, t, gb;
+            std::vector<std::string> tests;
             int rc = std::sscanf(line.c_str(), "N=%d D=%d T=%d guaranteed_best=%d", &n, &d, &t, &gb);
             assert(rc == 4 || !"input file contained malformed lines");
-            std::vector<std::string> tests;
-            for (int i=0; i < t; ++i) {
-                std::getline(infile, line);
-                assert(line.size() == n || !"input file contained malformed solution");
-                tests.push_back(line);
+            char nextch = infile.get();
+            infile.putback(nextch);
+            if (nextch == 'e') {
+                std::string word;
+                infile >> word;
+                assert(word == "emathgroup");
+                // This format comes from Zhao Hui Du, https://emathgroup.github.io/blog/two-poisoned-wine
+                tests.resize(t);
+                for (int i=0; i < n; ++i) {
+                    infile >> word;
+                    unsigned long long bits;
+                    rc = std::sscanf(word.c_str(), "%llx", &bits);
+                    assert(rc == 1 || !"emathgroup format contained malformed lines");
+                    assert(0 <= bits && bits < (1uLL << t));
+                    for (int r = 0; r < t; ++r) {
+                        tests[r].push_back((bits & 1) ? '1' : '.');
+                        bits >>= 1;
+                    }
+                }
+            } else {
+                for (int r=0; r < t; ++r) {
+                    std::getline(infile, line);
+                    assert(line.size() == n || !"input file contained malformed solution");
+                    tests.push_back(line);
+                }
             }
             auto strategy = std::make_shared<Strategy>(tests, gb ? GuaranteedBest::Yes : GuaranteedBest::No, BelongsInFile::Yes);
             preserve_from_file(m, n, d, std::move(strategy));
@@ -261,9 +315,15 @@ void write_solutions_to_file(const char *filename, const std::map<ND, std::share
     outfile << "\n\n";
 
     for (const auto& kv : m) {
+        int n = kv.first.n;
+        int d = kv.first.d;
         const auto& strategy = kv.second;
         if (strategy->belongs_in_file == BelongsInFile::Yes) {
-            outfile << strategy->to_string(kv.first.n, kv.first.d) << '\n';
+            if (n > 150) {
+                outfile << strategy->to_emathgroup_string(n, d) << '\n';
+            } else {
+                outfile << strategy->to_string(n, d) << '\n';
+            }
         }
     }
 }
@@ -366,9 +426,8 @@ int main(int argc, char **argv)
     std::map<ND, std::shared_ptr<Strategy>> solutions_from_file;
     read_solutions_from_file(filename, solutions_from_file);
 
-    int max_n = n + 10;
-    for (auto&& kv : solutions_from_file) {
-        if (verify_all) {
+    if (verify_all) {
+        for (auto&& kv : solutions_from_file) {
             VerifyStrategyResult r = verify_strategy(kv.first.n, kv.first.d, kv.second->tests());
             if (!r.success) {
                 printf("INVALID! (This should never happen unless the solution file is bad.)\n");
@@ -378,11 +437,10 @@ int main(int argc, char **argv)
                 printf("%s\n", r.w2.c_str());
             }
         }
-        max_n = std::max(max_n, kv.first.n);
     }
 
     std::map<ND, std::shared_ptr<Strategy>> all_solutions;
-    add_easy_solutions(all_solutions, max_n);
+    add_easy_solutions(all_solutions, std::max(50, n + 10));
     for (auto&& kv : solutions_from_file) {
         if (overwrite_if_better(all_solutions, kv.first.n, kv.first.d, kv.second)) {
             add_solutions_derived_from(all_solutions, kv);
