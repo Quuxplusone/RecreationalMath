@@ -650,7 +650,7 @@ int main() {
     std::pmr::monotonic_buffer_resource mr(1'000'000);
     std::pmr::set_default_resource(&mr);
 #endif
-    using T = T_100_5_elaqqad_for_dummies;
+    using T = T_26_3;
     if (verify_strategy<T>()) {
         print_strategy<T>(false);
     }
