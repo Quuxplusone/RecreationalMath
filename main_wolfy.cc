@@ -103,44 +103,15 @@ std::shared_ptr<Strategy> perfect_strategy_for_one_wolf(int n)
 
 std::shared_ptr<Strategy> worst_case_strategy(int n, GuaranteedBest gb)
 {
-    std::vector<std::string> tests;
-    for (int i=0; i < n-1; ++i) {
-        tests.push_back(std::string(n, '.'));
-        tests.back()[i] = '1';
-    }
-    return std::make_shared<Strategy>(std::move(tests), gb, BelongsInFile::No);
-}
-
-std::shared_ptr<Strategy> chop_last_sheep(std::shared_ptr<Strategy> orig)
-{
-    auto tests = orig->tests();
-    auto& final_test = tests.back();
-    const int n = final_test.size();
-    auto first_it = std::find(final_test.begin(), final_test.end(), '1');
-    assert(first_it != final_test.end());
-    int animal_to_remove_idx = (first_it - final_test.begin());
-    bool can_lose_this_test = (std::find(first_it + 1, final_test.end(), '1') == final_test.end());
-
-    if (can_lose_this_test) {
-        tests.pop_back();
-    }
-    tests.erase(
-        std::remove_if(
-            tests.begin(),
-            tests.end(),
-            [&](const std::string& test) { return std::count(test.begin(), test.end(), '1') == int(test[animal_to_remove_idx] == '1'); }
-        ),
-        tests.end()
-    );
-
     return std::make_shared<Strategy>(
-        tests.size(),
-        GuaranteedBest::No,
+        n-1,
+        gb,
         BelongsInFile::No,
-        [animal_to_remove_idx, captured_tests = std::move(tests)]() {
-            auto tests = captured_tests;
-            for (auto&& test : tests) {
-                test.erase(test.begin() + animal_to_remove_idx);
+        [n]() {
+            std::vector<std::string> tests;
+            for (int i=0; i < n-1; ++i) {
+                tests.push_back(std::string(n, '.'));
+                tests.back()[i] = '1';
             }
             return tests;
         }
@@ -164,7 +135,7 @@ std::shared_ptr<Strategy> test_last_animal_individually(int n, std::shared_ptr<S
     );
 }
 
-std::shared_ptr<Strategy> remove_most_tested_animal(std::shared_ptr<Strategy> orig)
+std::shared_ptr<Strategy> replace_most_tested_animal(std::shared_ptr<Strategy> orig, bool with_wolf)
 {
     auto tests = orig->tests();
     const int n = tests[0].size();
@@ -177,21 +148,25 @@ std::shared_ptr<Strategy> remove_most_tested_animal(std::shared_ptr<Strategy> or
     }
     auto most_tested_idx = std::max_element(counts.begin(), counts.end()) - counts.begin();
     int most_tested_count = counts[most_tested_idx];
+    assert(most_tested_count >= 2);
+
+    if (with_wolf) {
+        tests.erase(
+            std::remove_if(
+                tests.begin(),
+                tests.end(),
+                [&](const auto& test){ return test[most_tested_idx] == '1'; }
+            ),
+            tests.end()
+        );
+    }
 
     return std::make_shared<Strategy>(
-        orig->t - most_tested_count,
+        tests.size(),
         GuaranteedBest::No,
         BelongsInFile::No,
         [most_tested_idx, captured_tests = std::move(tests)]() {
             auto tests = captured_tests;
-            tests.erase(
-                std::remove_if(
-                    tests.begin(),
-                    tests.end(),
-                    [&](const auto& test){ return test[most_tested_idx] == '1'; }
-                ),
-                tests.end()
-            );
             for (auto&& test : tests) {
                 test.erase(test.begin() + most_tested_idx);
             }
@@ -214,6 +189,9 @@ bool overwrite_if_better(std::map<ND, std::shared_ptr<Strategy>>& m, int n, int 
     if (it == m.end()) {
         return false;
     } else if (strategy->isBetterThan(*it->second)) {
+        if (it->second->guaranteed_best != GuaranteedBest::No) {
+            printf("Replacing t(%d,%d)<=%d with t(%d,%d)<=%d\n", n,d,it->second->t,n,d,strategy->t);
+        }
         assert((it->second->guaranteed_best == GuaranteedBest::No) || !"found something better than the guaranteed best");
         if (it->second->belongs_in_file == BelongsInFile::Yes) {
             // If this solution came from the file, we don't want to completely vanish it.
@@ -348,14 +326,23 @@ void add_solutions_derived_from(std::map<ND, std::shared_ptr<Strategy>>& m, cons
     int n = kv.first.n;
     int d = kv.first.d;
     const std::shared_ptr<Strategy>& strategy = kv.second;
+    int t = strategy->t;
 
-    if (2 < n && d < n) {
-        // A solution to t(n-1,d) can be constructed from t(n,d): simply introduce an innocent sheep.
-        if (overwrite_if_better(m, n-1, d, chop_last_sheep(strategy))) {
+    if (2 <= d && d < n && t < n-1) {
+        // A solution to t(n-k,d) can be constructed from t(n,d): simply introduce k innocent sheep.
+        // It's only worth doing if t < n-1.
+        auto smaller_strategy = replace_most_tested_animal(strategy, false);
+        if (overwrite_if_better(m, n-1, d, smaller_strategy)) {
             add_solutions_derived_from(m, *m.find(ND{n-1, d}));
         }
+        if (d-1 >= 2) {
+            auto smaller_strategy = replace_most_tested_animal(strategy, true);
+            if (overwrite_if_better(m, n-1, d-1, smaller_strategy)) {
+                add_solutions_derived_from(m, *m.find(ND{n-1, d-1}));
+            }
+        }
     }
-    if (2 < d && d < n-1) {
+    if (2 < d && d < n-1 && t < n-1) {
         // A solution for (n,d) also works for (n,d-1) except when d >= n-1.
         std::shared_ptr<Strategy> r = std::make_shared<Strategy>(
             strategy->t,
@@ -367,14 +354,9 @@ void add_solutions_derived_from(std::map<ND, std::shared_ptr<Strategy>>& m, cons
             add_solutions_derived_from(m, *m.find(ND{n, d-1}));
         }
     }
-    if (d < n) {
+    if (2 <= d && d < n && t < n-1) {
         if (overwrite_if_better(m, n+1, d, test_last_animal_individually(n, strategy))) {
             add_solutions_derived_from(m, *m.find(ND{n+1, d}));
-        }
-    }
-    if (2 < d && d < n) {
-        if (overwrite_if_better(m, n-1, d-1, remove_most_tested_animal(strategy))) {
-            add_solutions_derived_from(m, *m.find(ND{n-1, d-1}));
         }
     }
     if (strategy->t == n-1) {
@@ -440,13 +422,10 @@ int main(int argc, char **argv)
     }
 
     std::map<ND, std::shared_ptr<Strategy>> all_solutions;
-    add_easy_solutions(all_solutions, std::max(50, n + 10));
+    add_easy_solutions(all_solutions, n + 100);
     for (auto&& kv : solutions_from_file) {
-        if (overwrite_if_better(all_solutions, kv.first.n, kv.first.d, kv.second)) {
-            add_solutions_derived_from(all_solutions, kv);
-        } else {
-            preserve_from_file(all_solutions, kv.first.n, kv.first.d, kv.second);
-        }
+        preserve_from_file(all_solutions, kv.first.n, kv.first.d, kv.second);
+        add_solutions_derived_from(all_solutions, kv);
     }
 
     write_solutions_to_file("wolfy-out.txt", all_solutions);
