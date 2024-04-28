@@ -24,14 +24,14 @@ def elapsed():
   return int(1000 * (time.time() - start))
 
 poss = {
-  target: set(colorsOf(g, target) for g in dictionary)
+  target: set(colorsOf(g, target) for g in dictionary if g != target)
   for target in targetWords
 }
 print('len(poss) is %d, in %d ms' % (len(poss), elapsed()))
 
 # Make a list of all the possible rows. There should be 238 of them.
 rows = sorted(set().union(*poss.values()))
-print('len(rows) is %d (should be 238)' % len(rows))
+print('len(rows) is %d (should be 237)' % len(rows))
 
 poss = set(repr(sorted(v)) for v in poss.values())
 # Now poss is uniqued; it's a set of string-reprs-of lists of strings
@@ -42,7 +42,7 @@ poss = [set(rows.index(s) for s in ss) for ss in poss]
 
 print('len(poss) is %d, in %d ms' % (len(poss), elapsed()))
 
-rowIndices = list(range(238))
+rowIndices = list(range(237))
 atomicImpossibleSets = []
 for r in [1,2,3,4,5,6]:
   sixes_impossible = 0

@@ -4,14 +4,19 @@ This directory relates to "Reverse the List of Integers":
 - https://news.ycombinator.com/item?id=40010066
 - https://quuxplusone.github.io/blog/2024/04/22/reverse-the-list/
 
+----
+
+`nksolver.cpp` computes the following values:
+
 Compile "nksolver.cpp" with `-DN=10 -DK=5` (or whatever) to compute the values
 - C(n,k) = number of solvable lists
 - M(n,k) = worst-case number of moves to solve any list
 - L(n,k) = worst-case intermediate list length to optimally solve any list
-of length `N` and initial list length `K`. (That is, exactly `C` such lists
-can be solved at all; each of those `C` lists has a no-more-than-`M`-move solution;
-and each of those lists has a no-more-than-`M`-move solution where each intermediate
-position's list-length never exceeds `L`.
+of length `N` and initial list length `K`.
+
+That is, exactly `C` such lists can be solved at all; each of those `C` lists has a
+no-more-than-`M`-move solution; and each of those lists has a no-more-than-`M`-move
+solution where each intermediate position's list-length never exceeds `L`.
 
 The count $$C(n,k)$$ of solvable lists with high value $$n$$ and length $$k$$ is:
 (Entries suffixed with `?` come from Tomas Rokicki but have not been independently verified by my slower code.)
@@ -85,3 +90,36 @@ The sufficient intermediate list length $$L(n,k)$$ for solvable lists with high 
     n=19: 1 4 5 7 ? ? ? ? ? ? ? ? ? ? ? ? ? - -
     n=20: 1 4 5 ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? - -
 
+----
+
+`nssolver.cpp` computes the following values:
+
+Compile "nssolver.cpp" with `-DN=10 -DS=5` (or whatever) to compute the values
+- C_s(n,s) = number of solvable lists
+- M_s(n,s) = worst-case number of moves to solve any list
+of length `N` and invariant list sum `S`.
+
+That is, exactly `C_s` such lists can be solved at all; and each of those `C_s` lists has a
+no-more-than-`M_s`-move solution.
+
+This doesn't make a pretty triangle, because $$S$$ grows as $$N(N+1) / 2$$.
+Also, $$C_s(n,s) = 0$$ for all $$s\leq n$$. But we can just show the values
+for which $$C_s(n,s)$$ is nonzero, starting with $$S = n+1$$:
+
+    -- C_s --
+    n=6,  S=7:  - - 6 8 10 20
+    n=7,  S=8:  2 2 8 8 14 22 42 60 68 104 126 148 28
+    n=8,  S=9:  2 2 8 8 14 34 44 64 90 224 180 324 414 526  772    -  724 1084    -    -  548
+    n=9,  S=10: 2 2 8 8 14 38 44 68 96 230 254 396 508 742 1414 1584 2112 2946 3508 4112  8326  7764 10032  9404 10300  6800 17896
+    n=10, S=11: 2 2 8 8 14 38 44 68 98 236 264 426 546 802 1636 1826 2610 3558 4890 5750 11868 12270 17944 22112 25650 30542 39406  70810  72846  99346  84720  95074  91028  86604 136724   6048
+    n=11, S=12: 2 2 8 8 14 38 44 68 98 242 270 432 576 834 1690 2048 2892 3948 5484 7132 13504 14858 21722 27692 39236 44002 59996 102412 114934 153726 198580 226600 268760 340126 364552 684588 ...
+    n=12, S=13: 2 2 8 8 14 38 44 68 98 242 272 438 582 864 1720 2106 3062 4164 5790 7610 14898 16544 24288 31536 44150 55390 73334 123380 144174 196550 254990 ...
+
+    -- M_s --
+    n=6,  S=7:  - - 6 14  6  6
+    n=7,  S=8:  4 4 8 10 12  8 12 18 18 18 24 26  6
+    n=8,  S=9:  4 4 8  8 14 10 10 14 12 14 18 22 24 28 40  - 40 36  -  - 74
+    n=9,  S=10: 4 4 6  6  8  8  8 12 10 12 14 14 18 18 20 24 24 30 24 36 46 48 52 74 72 58 86
+    n=10, S=11: 4 4 6  6  6 10  8 12 10 10 12 12 14 14 14 18 16 18 20 22 24 30 34 36 36 36 34 42 44 48 74 88 82 126 76 38
+    n=11, S=12: 4 4 6  6  6  8  8  8  8 12 12 10 12 12 12 14 16 16 18 18 18 26 22 26 24 26 28 36 34 34 36 36 44  44 54 48 ...
+    n=12, S=13: 4 4 6  6  6  8  8  8  8 10 12 10 12 12 12 12 14 14 16 18 16 20 20 20 22 26 22 24 24 28 28 ...
