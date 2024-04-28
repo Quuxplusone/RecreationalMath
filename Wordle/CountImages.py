@@ -28,23 +28,32 @@ poss = {
   for target in targetWords
 }
 print('len(poss) is %d, in %d ms' % (len(poss), elapsed()))
+
+# Make a list of all the possible rows. There should be 238 of them.
 rows = sorted(set().union(*poss.values()))
+print('len(rows) is %d (should be 238)' % len(rows))
+
 poss = set(repr(sorted(v)) for v in poss.values())
 # Now poss is uniqued; it's a set of string-reprs-of lists of strings
-poss = list(set(eval(s)) for s in poss)
+poss = [set(eval(s)) for s in poss]
 # Now it's a uniqued list of sets of strings
-print('len(rows) is %d' % len(rows))
+poss = [set(rows.index(s) for s in ss) for ss in poss]
+# Now it's a uniqued list of sets of ints
+
 print('len(poss) is %d, in %d ms' % (len(poss), elapsed()))
-imposs_pairs = []
+
+rowIndices = list(range(238))
+atomicImpossibleSets = []
 for r in [1,2,3,4,5,6]:
   sixes_impossible = 0
-  for rowcomb in itertools.combinations(rows, r):
+  newAtomicImpossibleSets = []
+  for rowcomb in itertools.combinations(rowIndices, r):
     rc = set(rowcomb)
-    if r > 2 and any(ip.issubset(rc) for ip in imposs_pairs):
+    if any(ip.issubset(rc) for ip in atomicImpossibleSets):
       sixes_impossible += 1
       continue
     if not any(rc.issubset(p) for p in poss):
       sixes_impossible += 1
-      if r == 2:
-        imposs_pairs.append(rc)
-  print('%d combinations of %d rows are impossible, in %d ms' % (sixes_impossible, r, elapsed()))
+      newAtomicImpossibleSets.append(rc)
+  atomicImpossibleSets += newAtomicImpossibleSets
+  print('%d combinations of %d rows are impossible, in %d ms; len(atomicImpossibleSets) is %d' % (sixes_impossible, r, elapsed(), len(atomicImpossibleSets)))
