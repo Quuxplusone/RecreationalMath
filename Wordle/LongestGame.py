@@ -89,6 +89,8 @@ class Deduction:
     assert Deduction().updated([('sooty', 'XGYXX')]).isConsistent('zorro')
     assert not Deduction().updated([('sooty', 'XYGXX')]).isConsistent('zorro')  # O
     assert not Deduction().updated([('dryer', 'XXXGG')]).isConsistent('roger')  # R
+    assert Deduction().updated([('areae', 'YYYXX')]).isConsistent('lager')
+    assert not Deduction().updated([('areae', 'YYYXX')]).isConsistent('quare')  # E
 
 
 Deduction().selftest()
@@ -153,3 +155,7 @@ while True:
     deadline = time.time() + 20
     d = Deduction()
     extend(0, target, d)
+
+guesses = ['feoff', 'queer', 'niner', 'adder', 'rarer', 'paper', 'hazer', 'baler', 'layer', 'laxer', 'lawer', 'laver', 'later', 'laser', 'lamer', 'laker', 'lacer', 'lager']
+for a in extendInternally(guesses):
+  print(a)
