@@ -30,6 +30,10 @@ import time
 # Since $\theta_i = 4\atan(t_i)$ and $\theta_i < \pi/3$, we can
 # limit our search to $0 < t_i < \tan(\pi/12)$.
 #
+# We also know that if there are $n$ circles around the center
+# and $t_1$ is the largest $t$, then $4\atan(t_1) = \theta_1 > \frac{2\pi}{n}$,
+# which means $t_1 > \tan(\frac{\pi}{2n})$.
+#
 # To sum arctangents without losing exactitude, we use the formula
 #
 #     \atan(x) + \atan(y) = \atan(\frac{x+y}{1-xy})
@@ -144,10 +148,25 @@ def brute_force_find_ts(maxx):
   def possible_tlists():
     started = time.time()
     for t1 in possible_ts(tanpi12, 1):
+      theta1 = 4*math.atan(valueof(*t1))
+      if theta1 < (2*math.pi) / 7:
+        continue
       for t2 in possible_ts(*t1):
+        theta2 = 4*math.atan(valueof(*t2))
+        if theta2 < (2*math.pi - 2*theta1) / 5:
+          continue
         for t3 in possible_ts(*t2):
+          theta3 = 4*math.atan(valueof(*t3))
+          if theta3 < (2*math.pi - 2*theta1 - theta2) / 4:
+            continue
           for t4 in possible_ts(*t3):
+            theta4 = 4*math.atan(valueof(*t4))
+            if theta4 < (2*math.pi - 2*theta1 - theta2 - theta3) / 3:
+              continue
             for t5 in possible_ts(*t4):
+              theta5 = 4*math.atan(valueof(*t5))
+              if theta5 < (2*math.pi - 2*theta1 - theta2 - theta3 - theta4) / 2:
+                continue
               for t6 in possible_ts(*t5):
                 tlist = [t1,t2,t3,t4,t5,t6]
                 t7 = last_t_from_ts(tlist)
