@@ -78,27 +78,35 @@ def frac(n, d):
 def add(n1, d1, n2, d2):
   return frac(n1*d2 + n2*d1, d1*d2)
 
+def sub(n1, d1, n2, d2):
+  return add(n1, d1, -n2, d2)
+
 def mul(n1, d1, n2, d2):
   return frac(n1*n2, d1*d2)
 
 def div(n1, d1, n2, d2):
   return frac(n1*d2, d1*n2)
 
+def singlestep_ts_progress(prog, ti):
+  n,d = prog
+  p,e = ti
+  return frac((n*e + d*p), (d*e - n*p))
+
 def verify_ts(ts):
-  n,d = ts[0]
-  for p,e in ts[1:]:
-    if (d == 0): return False
-    (n, d) = frac((n*e + d*p), (d*e - n*p))
-  return (d == 0)
+  prog = ts[0]
+  for t in ts[1:]:
+    if (prog[1] == 0): return False
+    prog = singlestep_ts_progress(prog, t)
+  return (prog[1] == 0)
 
 assert verify_ts(edwardh_ts)
 
 def last_t_from_ts(ts):
-  n,d = ts[0]
-  for p,e in ts[1:]:
-    if (d == 0): return (0, 0)
-    (n, d) = frac((n*e + d*p), (d*e - n*p))
-  return (d, n)
+  prog = ts[0]
+  for t in ts[1:]:
+    if (prog[1] == 0): return (0, 0)
+    prog = singlestep_ts_progress(prog, t)
+  return frac(prog[1], prog[0])
 
 
 def ss_from_ts(ts):
@@ -128,6 +136,30 @@ def rs_from_ss(ss):
   return [r0] + [n for (n,d) in rs]
 
 
+def ss_from_rs(rs):
+  return [frac(r, rs[0] + r) for r in rs[1:]]
+
+
+def ts_from_ss(ss):
+  assert False, "TODO: implement this"
+
+if True:
+  rs=[
+    19849928693561210643960383705454462,
+    19762344279715183720410347994440538,
+    18199600765454631678943172642716800,
+    17113717966522320797355163059980613,
+    16206226732750885227565832833854069,
+    14805196711479374505560692098486669,
+    14366736306812578780218882552019488,
+     9025120472078837841529592293969024
+  ]
+  ts=[(6,23), (1,4), (7,29), (3,13), (2,9), (3,16), (78,379)]
+  assert rs == rs_from_ss(ss_from_ts(ts))
+  assert ss_from_rs(rs) == ss_from_ts(ts)
+  # TODO: assert ts_from_ss(ss_from_rs(rs)) == ts
+
+
 def brute_force_find_ts(maxx):
   # small_numbers = sorted(list(set([8,31, 1,4, 7,30, 13,59, 3,14, 1,5, 2,9])))
   # small_numbers = sorted(list(set([6, 23, 1, 4, 7, 29, 3, 13, 2, 9, 3, 16, 78, 379])))
@@ -151,27 +183,42 @@ def brute_force_find_ts(maxx):
       theta1 = 4*math.atan(valueof(*t1))
       if theta1 < (2*math.pi) / 7:
         continue
+      prog1 = t1
       for t2 in possible_ts(*t1):
         theta2 = 4*math.atan(valueof(*t2))
         if theta2 < (2*math.pi - 2*theta1) / 5:
+          continue
+        prog2 = singlestep_ts_progress(prog1, t2)
+        if (prog2[0] <= 0 or prog2[1] <= 0):
           continue
         for t3 in possible_ts(*t2):
           theta3 = 4*math.atan(valueof(*t3))
           if theta3 < (2*math.pi - 2*theta1 - theta2) / 4:
             continue
+          prog3 = singlestep_ts_progress(prog2, t3)
+          if (prog3[0] <= 0 or prog3[1] <= 0):
+            continue
           for t4 in possible_ts(*t3):
             theta4 = 4*math.atan(valueof(*t4))
             if theta4 < (2*math.pi - 2*theta1 - theta2 - theta3) / 3:
+              continue
+            prog4 = singlestep_ts_progress(prog3, t4)
+            if (prog4[0] <= 0 or prog4[1] <= 0):
               continue
             for t5 in possible_ts(*t4):
               theta5 = 4*math.atan(valueof(*t5))
               if theta5 < (2*math.pi - 2*theta1 - theta2 - theta3 - theta4) / 2:
                 continue
+              prog5 = singlestep_ts_progress(prog4, t5)
+              if (prog5[0] <= 0 or prog5[1] <= 0):
+                continue
               for t6 in possible_ts(*t5):
-                tlist = [t1,t2,t3,t4,t5,t6]
-                t7 = last_t_from_ts(tlist)
-                if (t7[0] > 0) and (t7[1] > 0) and (valueof(*t6) < valueof(*t7) < valueof(*t1)):
-                  tlist.append(t7)
+                prog6 = singlestep_ts_progress(prog5, t6)
+                if (prog6[1] <= 0) or (prog6[0] <= 0):
+                  continue
+                t7 = frac(prog6[1], prog6[0])
+                if (valueof(*t6) < valueof(*t7) < valueof(*t1)):
+                  tlist = [t1,t2,t3,t4,t5,t6,t7]
                   if verify_ts(tlist):
                     yield tlist
 
