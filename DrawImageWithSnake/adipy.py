@@ -4,12 +4,12 @@
 # https://codegolf.stackexchange.com/a/35962/11791
 # User @adipy, August–October 2014
 
+from PIL import Image  # pip install pillow
 import heapq
-from math import pow, sqrt, log
-from PIL import Image
+import math
+import sys
 
-tolerance = 0.001
-imageList = [ "lena.png", "MonaLisa.png", "Mandrill.png", "smallGreatWave.png", "largeGreatWave.png", "random.png"]
+tolerance = 0.01
 
 # A useful container to sort objects associated with a floating point value
 class SortContainer:
@@ -42,7 +42,7 @@ def direction(dx, dy):
 pixelMax = 255
 cChannels = 3
 def colorMetric(p):
-    return sqrt(sum([ pow(p[i],2) for i in range(cChannels)])/cChannels)/pixelMax
+    return math.sqrt(sum([ p[i]**2 for i in range(cChannels)])/cChannels)/pixelMax
 def colorDistance(p1,p2):
     return colorMetric( [ p1[i]-p2[i] for i in range(cChannels) ] )
 
@@ -145,7 +145,7 @@ class ImageTracer:
             if neighbor.parent is None:
                 heapq.heappush(self.DetourOptions, SortContainer(self.CostBlock(child, neighbor), (child, neighbor)) )
 
-    def BuildDetours(self):
+    def BuildDetours(self, outputFilename):
         # Create the initial path - depends on odd/even dimensions
         print("Building detours")
         dbImage = Image.new("RGB", (self.dgX, self.dgY), 0)
@@ -163,10 +163,10 @@ class ImageTracer:
                     cB = 255
                 dbImage.putpixel( (child.x//2,child.y//2), (cR, cG, cB) )
                 self.AssignToPath(parent, child)
-        dbImage.save("choices_" + self.imgName)
+        dbImage.save(outputFilename)
 
     # Reconstructing the path was a bad idea. Countless hard-to-find bugs!
-    def ReconstructSnake(self):
+    def ReconstructSnake(self, outputFilename):
         # Build snake from the DetourBlocks.
         print("Reconstructing path")
         self.path = []
@@ -176,11 +176,11 @@ class ImageTracer:
             self.path.append((x,y))
             db = self.DetourGrid[x//2][y//2]                     # What block do we occupy?
             if db.neighbors[d90ccw(d)] is None:                  # Is there a detour on my right? (clockwise)
-                x,y = x+offsets[d][0], y+offsets[d][6]      # Nope, keep going in this loop (won't cross a block boundary)
+                x,y = x+offsets[d][0], y+offsets[d][1]        # Nope, keep going in this loop (won't cross a block boundary)
                 d = d90cw(d)                                  # For "simplicity", going straight is really turning left then noticing a detour on the right
             else:
                 d = d90ccw(d)                                 # There IS a detour! Make a right turn
-                x,y = x+offsets[d][0], y+offsets[d][7]      # Move in that direction (will cross a block boundary)
+                x,y = x+offsets[d][0], y+offsets[d][1]        # Move in that direction (will cross a block boundary)
             if (x == xi and y == yi) or x < 0 or y < 0 or x >= self.srcX or y >= self.srcY:                         # Back to the starting point! We're done!
                 break
         print("Retracing path length =", len(self.path))       # should = Width * Height
@@ -197,31 +197,31 @@ class ImageTracer:
             cR = (cR + 2) % pixelMax
             if cR == 0:
                 cG = (cG + 4) % pixelMax
-        pathImage.save("path_" + self.imgName)
+        pathImage.save(outputFilename)
 
-    def ColorizeSnake(self):
+    def ColorizeSnake(self, outputFilename):
         #Simple colorization of path
         traceImage = Image.new("RGB", (self.srcX, self.srcY), 0)
         print("Colorizing path")
         color = ()
-        lastcolor = self.srcImg[self.path[0][0]][self.path[0][8]]
+        lastcolor = self.srcImg[self.path[0][0]][self.path[0][1]]
         for i in range(len(self.path)):
-            v = [ self.srcImg[self.path[i][0]][self.path[i][9]][j] - lastcolor[j] for j in range(3) ]
+            v = [ self.srcImg[self.path[i][0]][self.path[i][1]][j] - lastcolor[j] for j in range(3) ]
             magv = colorMetric(v)
             if magv == 0:       # same color
                 color = lastcolor
             if magv > tolerance: # only adjust by allowed tolerance
                 color = tuple([lastcolor[j] + v[j]/magv * tolerance for j in range(3)])
             else:               # can reach color within tolerance
-                color = tuple([self.srcImg[self.path[i][0]][self.path[i][10]][j] for j in range(3)])
+                color = tuple([self.srcImg[self.path[i][0]][self.path[i][1]][j] for j in range(3)])
             lastcolor = color
-            traceImage.putpixel( (self.path[i][0], self.path[i][11]), tuple([int(color[j]) for j in range(3)]) )
-        traceImage.save("snaked_" + self.imgName)
+            traceImage.putpixel( (self.path[i][0], self.path[i][1]), tuple([int(color[j]) for j in range(3)]) )
+        traceImage.save(outputFilename)
 
-
-for imgName in imageList:
+if __name__ == '__main__':
+    imgName = sys.argv[1]
+    tolerance = float(sys.argv[2]) if len(sys.argv) > 2 else 0.01
     it = ImageTracer(imgName)
-    it.BuildDetours()
-    it.ReconstructSnake()
-    it.ColorizeSnake()
-
+    it.BuildDetours("choices_" + imgName)
+    it.ReconstructSnake("path_" + imgName)
+    it.ColorizeSnake("snaked_" + imgName)
