@@ -167,14 +167,14 @@ def brute_force_find_ts(maxx):
   tanpi12 = math.tan(math.pi / 12)
 
   def possible_ts(ni, di):
-    for n in small_numbers:
-      j = 0
-      while j < len(small_numbers) and (n * di >= ni * small_numbers[j]):
-        j += 1
-      while j < len(small_numbers):
+    jstart = 1
+    for i in range(len(small_numbers)):
+      n = small_numbers[i]
+      while jstart < len(small_numbers) and (n * di >= ni * small_numbers[jstart]):
+        jstart += 1
+      for j in range(jstart, len(small_numbers)):
         if math.gcd(n, small_numbers[j]) == 1:
           yield (n, small_numbers[j])
-        j += 1
 
   # Generate 6 ts in increasing order, and the 7th to fill in the gap.
   def possible_tlists():
