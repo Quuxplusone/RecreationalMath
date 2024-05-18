@@ -166,53 +166,55 @@ def brute_force_find_ts(maxx):
   small_numbers = range(1, maxx)
   tanpi12 = math.tan(math.pi / 12)
 
-  def possible_ts(ni, di):
+  def possible_ts(current_ts):
+    # We shouldn't yield any fractions greater than or equal to (nmax/dmax),
+    # because the series needs to be strictly decreasing.
+    # We shouldn't yield any fractions less than (nmin/dmin), because
+    # then we couldn't make it all the way around the circle.
+    if current_ts:
+      nmax, dmax = current_ts[-1]
+      usedtheta = 4*sum(math.atan(valueof(*t)) for t in current_ts)
+      usedtheta += 4*math.atan(valueof(*current_ts[0]))  # for t7, which could be as big as t1
+      remainingtheta = 2*math.pi - usedtheta
+      avgremainingtheta = (2*math.pi - usedtheta) / (6 - len(current_ts))
+    else:
+      nmax, dmax = tanpi12, 1
+      avgremainingtheta = (2*math.pi) / 7
+    ndmin = math.tan(avgremainingtheta/4)
+
     jstart = 1
     for i in range(len(small_numbers)):
       n = small_numbers[i]
-      while jstart < len(small_numbers) and (n * di >= ni * small_numbers[jstart]):
+      while jstart < len(small_numbers) and (n * dmax >= nmax * small_numbers[jstart]):
         jstart += 1
       for j in range(jstart, len(small_numbers)):
-        if math.gcd(n, small_numbers[j]) == 1:
-          yield (n, small_numbers[j])
+        d = small_numbers[j]
+        if (n < ndmin * d):
+          break
+        if math.gcd(n, d) == 1:
+          yield (n, d)
 
   # Generate 6 ts in increasing order, and the 7th to fill in the gap.
   def possible_tlists():
-    started = time.time()
-    for t1 in possible_ts(tanpi12, 1):
-      theta1 = 4*math.atan(valueof(*t1))
-      if theta1 < (2*math.pi) / 7:
-        continue
+    for t1 in possible_ts([]):
       prog1 = t1
-      for t2 in possible_ts(*t1):
-        theta2 = 4*math.atan(valueof(*t2))
-        if theta2 < (2*math.pi - 2*theta1) / 5:
-          continue
+      for t2 in possible_ts([t1]):
         prog2 = singlestep_ts_progress(prog1, t2)
         if (prog2[0] <= 0 or prog2[1] <= 0):
           continue
-        for t3 in possible_ts(*t2):
-          theta3 = 4*math.atan(valueof(*t3))
-          if theta3 < (2*math.pi - 2*theta1 - theta2) / 4:
-            continue
+        for t3 in possible_ts([t1, t2]):
           prog3 = singlestep_ts_progress(prog2, t3)
           if (prog3[0] <= 0 or prog3[1] <= 0):
             continue
-          for t4 in possible_ts(*t3):
-            theta4 = 4*math.atan(valueof(*t4))
-            if theta4 < (2*math.pi - 2*theta1 - theta2 - theta3) / 3:
-              continue
+          for t4 in possible_ts([t1, t2, t3]):
             prog4 = singlestep_ts_progress(prog3, t4)
             if (prog4[0] <= 0 or prog4[1] <= 0):
               continue
-            for t5 in possible_ts(*t4):
-              theta5 = 4*math.atan(valueof(*t5))
-              if theta5 < (2*math.pi - 2*theta1 - theta2 - theta3 - theta4) / 2:
-                continue
+            for t5 in possible_ts([t1, t2, t3, t4]):
               prog5 = singlestep_ts_progress(prog4, t5)
               if (prog5[0] <= 0 or prog5[1] <= 0):
                 continue
-              for t6 in possible_ts(*t5):
+              for t6 in possible_ts([t1, t2, t3, t4, t5]):
                 prog6 = singlestep_ts_progress(prog5, t6)
                 if (prog6[1] <= 0) or (prog6[0] <= 0):
                   continue
