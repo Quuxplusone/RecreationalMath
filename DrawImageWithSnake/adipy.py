@@ -218,6 +218,39 @@ class ImageTracer:
             traceImage.putpixel( (self.path[i][0], self.path[i][1]), tuple([int(color[j]) for j in range(3)]) )
         traceImage.save(outputFilename)
 
+    def ColorizeSnakeBig(self, outputFilename):
+        #Simple colorization of path
+        traceImage = Image.new("RGB", (3*self.srcX+1, 3*self.srcY+1), 0)
+        print("Colorizing path")
+        color = ()
+        lastcolor = self.srcImg[self.path[0][0]][self.path[0][1]]
+        prev = None
+        for i in range(len(self.path)):
+            v = [ self.srcImg[self.path[i][0]][self.path[i][1]][j] - lastcolor[j] for j in range(3) ]
+            magv = colorMetric(v)
+            if magv == 0:       # same color
+                color = lastcolor
+            if magv > tolerance: # only adjust by allowed tolerance
+                color = tuple([lastcolor[j] + v[j]/magv * tolerance for j in range(3)])
+            else:               # can reach color within tolerance
+                color = tuple([self.srcImg[self.path[i][0]][self.path[i][1]][j] for j in range(3)])
+            lastcolor = color
+            traceImage.putpixel( (3*self.path[i][0]+1, 3*self.path[i][1]+1), tuple([int(color[j]) for j in range(3)]) )
+            traceImage.putpixel( (3*self.path[i][0]+1, 3*self.path[i][1]+2), tuple([int(color[j]) for j in range(3)]) )
+            traceImage.putpixel( (3*self.path[i][0]+2, 3*self.path[i][1]+1), tuple([int(color[j]) for j in range(3)]) )
+            traceImage.putpixel( (3*self.path[i][0]+2, 3*self.path[i][1]+2), tuple([int(color[j]) for j in range(3)]) )
+            if prev is not None:
+                dx = prev[0] - self.path[i][0]
+                dy = prev[1] - self.path[i][1]
+                dx1 = (0 if dx==-1 else 3) if dx else 1
+                dx2 = (0 if dx==-1 else 3) if dx else 2
+                dy1 = (0 if dy==-1 else 3) if dy else 1
+                dy2 = (0 if dy==-1 else 3) if dy else 2
+                traceImage.putpixel( (3*self.path[i][0]+dx1, 3*self.path[i][1]+dy1), tuple([int((color[j] + lastcolor[j]) / 2) for j in range(3)]) )
+                traceImage.putpixel( (3*self.path[i][0]+dx2, 3*self.path[i][1]+dy2), tuple([int((color[j] + lastcolor[j]) / 2) for j in range(3)]) )
+            prev = self.path[i]
+        traceImage.save(outputFilename)
+
 if __name__ == '__main__':
     imgName = sys.argv[1]
     tolerance = float(sys.argv[2]) if len(sys.argv) > 2 else 0.01
@@ -225,3 +258,4 @@ if __name__ == '__main__':
     it.BuildDetours("choices_" + imgName)
     it.ReconstructSnake("path_" + imgName)
     it.ColorizeSnake("snaked_" + imgName)
+    it.ColorizeSnakeBig("bigsnaked_" + imgName)
