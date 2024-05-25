@@ -1,6 +1,7 @@
 # @EdwardH's solution from https://puzzling.stackexchange.com/a/126674/3896
 
 import math
+import random
 import sys
 import time
 
@@ -111,14 +112,12 @@ def last_t_from_ts(ts):
 
 def ss_from_ts(ts):
   assert len(ts) % 2 == 1
-  def f(n, d):
-    return frac(2*n*d, (d**2 + n**2))
+  us = [frac(2*n*d, (d**2 + n**2)) for n,d in ts]
   ss = []
   for i in range(len(ts)):
-    s = f(*ts[i])
+    s = us[i]
     for j in range(1, len(ts)):
-      tsj = ts[(i+j) % len(ts)]
-      term = f(*tsj)
+      term = us[(i+j) % len(ts)]
       if j % 2 == 0:
         s = mul(*s, *term)
       else:
@@ -165,12 +164,14 @@ def brute_force_find_ts(maxx):
   # small_numbers = sorted(list(set([6, 23, 1, 4, 7, 29, 3, 13, 2, 9, 3, 16, 78, 379])))
   small_numbers = range(1, maxx)
   tanpi12 = math.tan(math.pi / 12)
+  REQUIRED = [(1,4), (2,9), (1,5)]
 
-  def possible_ts(current_ts):
+  def possible_ts_generator(current_ts):
     # We shouldn't yield any fractions greater than or equal to (nmax/dmax),
     # because the series needs to be strictly decreasing.
     # We shouldn't yield any fractions less than (nmin/dmin), because
     # then we couldn't make it all the way around the circle.
+    # We shouldn't yield any fractions less than REQUIRED if we haven't already emitted REQUIRED.
     if current_ts:
       nmax, dmax = current_ts[-1]
       usedtheta = 4*sum(math.atan(valueof(*t)) for t in current_ts)
@@ -181,6 +182,9 @@ def brute_force_find_ts(maxx):
       nmax, dmax = tanpi12, 1
       avgremainingtheta = (2*math.pi) / 7
     ndmin = math.tan(avgremainingtheta/4)
+    for nd in REQUIRED:
+      if nd not in current_ts:
+        ndmin = max(ndmin, valueof(*nd))
 
     jstart = 1
     for i in range(len(small_numbers)):
@@ -193,6 +197,11 @@ def brute_force_find_ts(maxx):
           break
         if math.gcd(n, d) == 1:
           yield (n, d)
+
+  def possible_ts(current_ts):
+    ts = list(possible_ts_generator(current_ts))
+    random.shuffle(ts)
+    return ts
 
   # Generate 6 ts in increasing order, and the 7th to fill in the gap.
   def possible_tlists():
@@ -221,21 +230,23 @@ def brute_force_find_ts(maxx):
                 t7 = frac(prog6[1], prog6[0])
                 if (valueof(*t6) < valueof(*t7) < valueof(*t1)):
                   tlist = [t1,t2,t3,t4,t5,t6,t7]
-                  if verify_ts(tlist):
-                    yield tlist
+                  # assert verify_ts(tlist)
+                  yield tlist
 
-  for tlist in possible_tlists():
-    ss = ss_from_ts(tlist)
+  def is_strictly_decreasing(ts):
+    return all(a > b for a, b in zip(ts, ts[1:]))
+
+  for ts in possible_tlists():
+    ss = ss_from_ts(ts)
     if ss is None:
       continue
     rs = rs_from_ss(ss)
-    if rs[::-1] == sorted(rs):
-      yield tlist
+    if is_strictly_decreasing(rs):
+      yield rs, ts
 
 minc = float("inf")
 started = time.time()
-for ts in brute_force_find_ts(int(sys.argv[1])):
-  rs = rs_from_ss(ss_from_ts(ts))
+for rs, ts in brute_force_find_ts(int(sys.argv[1])):
   c = rs[0]
   rs = rs[1:]
 
@@ -249,10 +260,14 @@ for ts in brute_force_find_ts(int(sys.argv[1])):
     # return sum(theta(a,b) for a,b in zip(rs, shifted_rs))
     return sum(theta(a,b) for a,b in zip(reversed(rs), reversed(shifted_rs)))
 
-  epsilon = abs(total_theta(rs) - 2*math.pi)
-  assert epsilon < 0.000001, "should be zero, modulo IEEE-floating-point precision loss"
-
   if (c < minc):
     print("%r sec: rs=%r" % (time.time() - started, [c] + rs))
     print(" ts=%r" % (ts,))
     minc = c
+
+    # Sanity-check that this indeed looks like a solution
+    epsilon = abs(total_theta(rs) - 2*math.pi)
+    assert epsilon < 0.000001, "should be zero, modulo IEEE-floating-point precision loss"
+
+
+print("%r sec: Finished!" % (time.time() - started))
