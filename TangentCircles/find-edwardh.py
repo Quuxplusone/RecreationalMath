@@ -111,8 +111,24 @@ def last_t_from_ts(ts):
 
 
 def ss_from_ts(ts):
-  assert len(ts) % 2 == 1
+  # assert len(ts) == 7
   us = [frac(2*n*d, (d**2 + n**2)) for n,d in ts]
+  def f(a,b,c,d, x,y,z):
+    n = (us[a][0] * us[b][0] * us[c][0] * us[d][0], us[a][1] * us[b][1] * us[c][1] * us[d][1])
+    d = (us[x][0] * us[y][0] * us[z][0], us[x][1] * us[y][1] * us[z][1])
+    return div(*n, *d)
+  return [
+    f(0,2,4,6, 1,3,5),
+    f(1,3,5,0, 2,4,6),
+    f(2,4,6,1, 3,5,0),
+    f(3,5,0,2, 4,6,1),
+    f(4,6,1,3, 5,0,2),
+    f(5,0,2,4, 6,1,3),
+    f(6,1,3,5, 0,2,4),
+  ]
+
+  # This is the general (any-number-of-circles) approach.
+  assert len(ts) % 2 == 1
   ss = []
   for i in range(len(ts)):
     s = us[i]
