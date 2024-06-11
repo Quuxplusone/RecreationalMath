@@ -2,6 +2,7 @@
 
 https://puzzling.stackexchange.com/questions/126548/geometry-puzzle-tangent-circles-with-integer-radii
 https://math.stackexchange.com/questions/4913156/finding-a-sequence-of-tangent-circles-with-integer-radii
+https://quuxplusone.github.io/blog/2024/06/10/tangent-circles-of-integer-radius/
 
 Find a set of at least 7 circles, with unique integer radii, such that if you put the biggest circle
 in the middle and surround it with the other circles in strictly decreasing order, the surrounding
@@ -55,3 +56,11 @@ So far, the solution with smallest central circle is:
       1967470772556389886966582369792,
     ]
     ts = [1/4, 7/29, 3/13, 2/9, 3/14, 29/138, 11/48]
+
+----
+
+`soddy.py` ignores the "strictly decreasing" criterion of the actual problem.
+It simply picks three integer bends for three mutually tangent outer circles, and then
+computes the bend of the inner Soddy circle that kisses all three of them. Then it converts
+bends to integer radii. It finds that the smallest set of four mutually tangent circles
+has radii (6 23 46 69), or (1 3 12 12) if we allow duplicates.

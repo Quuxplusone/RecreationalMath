@@ -12,3 +12,8 @@ seen. (Yellow letters must appear in a different position; gray letters can't ap
 
 `CountImages.py` implements a (slow) exhaustive count of sets of rows that can't all
 appear in a single Wordle game, per ["How many Wordle images are there?"](https://puzzling.stackexchange.com/questions/114469/how-many-wordle-images-are-there)
+
+`CountImages2.py` is very slightly smarter: For each possible target word, compute the set of
+possible row-colorings. Then, for each (set of row-colorings), see if there's any
+(set of row-colorings) that subsumes it; if so, discard the smaller set. Turns out this
+discards only about 10% of the sets; we still have to brute-force through all the rest.
