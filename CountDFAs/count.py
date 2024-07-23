@@ -59,9 +59,8 @@ def all_dfas(n, m):
       else:
         for x in range(1, n+1):
           for y in range(1, n+1):
-            for z in ([True] if m == 1 else [True, False]):
-              d[m] = {'a': x, 'b': y, 'accept': z}
-              yield d
+            d[m] = {'a': x, 'b': y}
+            yield d
 
 def dfa_accepts(d, input):
   s = 1
@@ -79,11 +78,17 @@ for r in range(si):
 
 all_langs = set()
 c = 1
-for i, d in enumerate(all_dfas(n, n)):
-  lang = ''.join(('x' if dfa_accepts(d, input) else '.') for input in sample_inputs)
-  if lang not in all_langs:
-    print(c, end='.  ')
-    c += 1
-    print_dfa(d)
-    all_langs.add(lang)
+for d in all_dfas(n, n):
+  # WLOG, let the accepting states be 1..m and the rejecting states be m+1..n.
+  # And state 1 will always be accepting, so that the empty string is accepted.
+  # To count also the languages which reject the empty string, just double the count.
+  for m in range(1, n):
+    for s in d.keys():
+      d[s]['accept'] = (s <= m)
+    lang = ''.join(('x' if dfa_accepts(d, input) else '.') for input in sample_inputs)
+    if lang not in all_langs:
+      print(c, end='.  ')
+      c += 1
+      print_dfa(d)
+      all_langs.add(lang)
 
