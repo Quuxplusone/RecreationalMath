@@ -36,7 +36,9 @@
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <unordered_set>
 #include <vector>
 
@@ -153,15 +155,21 @@ int main(int argc, char **argv) {
     }
   }
 
+  std::mutex m;
   std::unordered_set<Language> all_langs;
-  all_dfas<MAXN>(n, n, [&](DFA& d) {
-    for (int i=1; i < (n==1 ? 2 : n); ++i) {
-      d.accepting_ = i;
-      auto lang = language_recognized_by(d, all_inputs.data(), all_inputs.size());
-      if (all_langs.insert(std::move(lang)).second) {
-        printf("%zu.  ", all_langs.size());
-        print_dfa(d);
-      }
-    }
-  });
+  std::vector<std::thread> workers;
+  for (int i=1; i < (n==1 ? 2 : n); ++i) {
+    workers.emplace_back([&, i]() {
+      std::unordered_set<Language> local_langs;
+      all_dfas<MAXN>(n, n, [&](DFA& d) {
+        d.accepting_ = i;
+        auto lang = language_recognized_by(d, all_inputs.data(), all_inputs.size());
+        local_langs.insert(std::move(lang));
+      });
+      auto lk = std::lock_guard<std::mutex>(m);
+      all_langs.merge(std::move(local_langs));
+    });
+  }
+  for (auto&& t : workers) t.join();
+  printf("%zu\n", all_langs.size());
 }
