@@ -54,12 +54,19 @@ def all_dfas(n, m):
     yield {}
   else:
     for d in all_dfas(n, m-1):
-      if m-1 >= 1 and d[1]['a'] == 1 and d[1]['b'] == 1:
+      is_closed = (m >= 2)
+      for s in range(1, m):
+        if d[s]['a'] >= m or d[s]['b'] >= m:
+          is_closed = False
+          break
+      if is_closed:
+        # If the DFA is already "closed", no need to explore the unreachable states.
+        d[m] = {'a': m, 'b': m}
         yield d
       else:
-        for x in range(1, n+1):
-          for y in range(1, n+1):
-            d[m] = {'a': x, 'b': y}
+        for x in range(n):
+          for y in range(n):
+            d[m] = {'a': x+1, 'b': y+1}
             yield d
 
 def dfa_accepts(d, input):
