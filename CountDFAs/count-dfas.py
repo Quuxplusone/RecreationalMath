@@ -1,4 +1,4 @@
-# a(n) = Count of languages recognizable by a DFA with n states.
+# a(n) = Count of languages over {a,b} recognizable by a DFA with n states.
 #
 # For example, with 1 state, you can't leave that one state, and it can
 # either accept (accepting the universal language) or reject (accepting
@@ -23,7 +23,7 @@
 # we just run them brute-force on all possible input strings up to some given length `i`.
 # (Length `2n-1` suffices to distinguish any two `n`-state DFAs.)
 #
-# Run as `python count.py n i`, where `n` is the number of states (e.g. 4)
+# Run as `python count-dfas.py n i`, where `n` is the number of states (e.g. 4)
 # and `i` (optional) is the number of letters'-worth of input to test.
 #
 # a(n) = 2, 26, 1054, 57068, 3762374, ...
