@@ -1,7 +1,7 @@
-// Compile with "g++ -W -Wall -O2 count.cpp"
+// Compile with "g++ -std=c++17 -W -Wall -O2 count-dfas.cpp"
 
 /*
- a(n) = Count of languages recognizable by a DFA with n states.
+ a(n) = Count of languages over {a,b} recognizable by a DFA with n states.
 
  For example, a(1) = 2 (the empty language and the universal language).
  For a(2) = 26, there are thirteen recognizable languages plus their complements:
@@ -23,7 +23,7 @@
  we just run them brute-force on all possible input strings up to some given length `i`.
  (Length `2n-1` suffices to distinguish any two `n`-state DFAs.)
 
- Run as `./count n`, where `n` is the number of states (e.g. 4).
+ Run as `./count-dfas n`, where `n` is the number of states (e.g. 4).
 
  a(n) = 2, 26, 1054, 57068, 3762374, ...
 
@@ -143,7 +143,7 @@ Language language_recognized_by(const DFA& d, const Input *inputs, size_t n) {
 }
 
 int main(int argc, char **argv) {
-  assert(argc == 2 && "Usage: ./count n, where n is the number of DFA states");
+  assert(argc == 2 && "Usage: ./count-dfas n, where n is the number of DFA states");
   int n = atoi(argv[1]);
   assert(n <= MAXN && "Increase MAXN and recompile");
 
