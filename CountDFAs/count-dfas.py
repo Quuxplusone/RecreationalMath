@@ -37,10 +37,13 @@
 import itertools
 import sys
 
+ALPHABET_SIZE = 2
+ALPHABET = [chr(ord('a') + i) for i in range(ALPHABET_SIZE)]
+
 def print_dfa(d):
   for s in range(1, len(d)+1):
     if s != 1: print('; ', end='')
-    print(' State %d: a->%d, b->%d%s' % (s, d[s]['a'], d[s]['b'], ', accepting' if d[s]['accept'] else ''), end='')
+    print('State %d: %s%s' % (s, ', '.join('%c->%d' % (c, d[s][c]) for c in ALPHABET), ', accepting' if d[s]['accept'] else ''), end='')
   print('')
 
 # A sample one-state DFA accepting the universal language.
@@ -56,18 +59,17 @@ def all_dfas(n, m):
     for d in all_dfas(n, m-1):
       is_closed = (m >= 2)
       for s in range(1, m):
-        if d[s]['a'] >= m or d[s]['b'] >= m:
+        if any(d[s][c] >= m for c in ALPHABET):
           is_closed = False
           break
       if is_closed:
         # If the DFA is already "closed", no need to explore the unreachable states.
-        d[m] = {'a': m, 'b': m}
+        d[m] = {c: m for c in ALPHABET}
         yield d
       else:
-        for x in range(n):
-          for y in range(n):
-            d[m] = {'a': x+1, 'b': y+1}
-            yield d
+        for ss in itertools.product(range(n), repeat=len(ALPHABET)):
+          d[m] = {k: v+1 for k,v in zip(ALPHABET, ss)}
+          yield d
 
 def dfa_accepts(d, input):
   s = 1
@@ -81,7 +83,7 @@ si = int(sys.argv[2]) if len(sys.argv) >= 3 else (2*n - 1)
 
 sample_inputs = []
 for r in range(si):
-  sample_inputs += list(itertools.product('ab', repeat=r))
+  sample_inputs += list(itertools.product(ALPHABET, repeat=r))
 
 all_langs = set()
 c = 1
@@ -89,7 +91,7 @@ for d in all_dfas(n, n):
   # WLOG, let the accepting states be 1..m and the rejecting states be m+1..n.
   # And state 1 will always be accepting, so that the empty string is accepted.
   # To count also the languages which reject the empty string, just double the count.
-  for m in range(1, n):
+  for m in range(1, (2 if n==1 else n)):
     for s in d.keys():
       d[s]['accept'] = (s <= m)
     lang = ''.join(('x' if dfa_accepts(d, input) else '.') for input in sample_inputs)
