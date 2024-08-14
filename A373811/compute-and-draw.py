@@ -28,19 +28,27 @@ def point_is_on_line(p0, l):
 def line_between_points(p, q):
   return (p, q)
 
-def lines_through_points(ps):
+def lines_through_points(ps, maxlen):
   # We must have a line through ps[0]. Where else?
+  # Look for solutions in `maxlen` or fewer lines; otherwise return None.
   if not ps:
     return []
-  elif len(ps) == 1:
+  if maxlen == 0:
+    return None
+  if len(ps) == 1:
     return [(ps[0], ps[0])]
   best = None
   for i in range(1, len(ps)):
+    if ps[0][1] == ps[i][1] and (i != 1):
+      # Avoid looking redundantly at lines that are strictly horizontal.
+      continue
     line = line_between_points(ps[0], ps[i])
     remaining_ps = [p for p in ps if not point_is_on_line(p, line)]
-    lines = lines_through_points(remaining_ps) + [line]
-    if best is None or len(best) > len(lines):
-      best = lines
+    lines = lines_through_points(remaining_ps, maxlen - 1)
+    if lines is not None:
+      if best is None or len(lines) < len(best):
+        maxlen = len(lines)
+        best = lines + [line]
   return best
 
 def draw_plot(points, lines):
@@ -58,9 +66,11 @@ def draw_plot(points, lines):
 
 if __name__ == '__main__':
   points = [(0,0), (1,1)]
+  current = 2
   for i in range(100):
-    lines = lines_through_points(points)
+    lines = lines_through_points(points, current+1)
     draw_plot(points, lines)
-    newpoint = (len(points), len(lines))
+    current = len(lines)
+    newpoint = (len(points), current)
     points += [newpoint]
     print(points)
