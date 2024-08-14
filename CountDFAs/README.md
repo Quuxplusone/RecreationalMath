@@ -5,6 +5,7 @@ Compile the code, then pass `n` on the command line.
 - http://list.seqfan.eu/pipermail/seqfan/2024-July/075162.html
 - http://list.seqfan.eu/pipermail/seqfan/2024-July/075164.html
 - https://cs.stackexchange.com/questions/48136/testing-two-dfas-generate-the-same-language-by-trying-all-strings-upto-a-certain
+- https://quuxplusone.github.io/blog/2024/07/27/counting-dfas/
 
 `count-dfas.py` counts the number of distinct languages recognizable by n-state DFAs, over languages of size `ALPHABET_SIZE`.
 Change the value of `ALPHABET_SIZE` in the source code, then pass `n` on the command line.

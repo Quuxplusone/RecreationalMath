@@ -7,13 +7,15 @@
 
  For example, a(1) = 2 (the empty language and the universal language).
  For a(2) = 12, there are six recognizable languages, plus their complements,
- plus the languages you get by recoloring the alphabet (e.g. swapping 'a' and 'b',
- or recoloring all 'b's as 'a's):
+ plus the languages you get by recoloring equivalence-classes of letters within
+ the alphabet (e.g. swapping 'a' and 'b'):
+  1  .*         2  NOT(1)
   19 (..)*      23 NOT(19)
+  26 ..*        22 NOT(26)
   3  (a|b.)*    7  NOT(3)    11 (b|a.)*    15 NOT(11)
   5  (a|ba*b)*  9  NOT(5)    12 (b|ab*a)*  16 NOT(12)
-  6  a*         10 NOT(6)    14 b*         18 NOT(14)   1  .*         2  NOT(1)
-  17 .*a        13 NOT(17)   8  .*b        4  NOT(8)    26 ..*        22 NOT(26)
+  6  a*         10 NOT(6)    14 b*         18 NOT(14)
+  17 .*a        13 NOT(17)   8  .*b        4  NOT(8)
   21 (.a*b)*    25 NOT(21)   20 (.b*a)*    24 NOT(20)
 
  To determine whether two superficially different DFAs accept the same language,
@@ -24,10 +26,10 @@
 
           L=1   L=2      L=3     L=4     L=5
     n=1   2     ...
-    n=2   6     ...
-    n=3   18    64       ...
-    n=4   48    3900     16314   ?       ?
-    n=5   126   273072   ?       ?       ?
+    n=2   6     16       24      26      ...
+    n=3   18    540      7038    ?       ?
+    n=4   48    28640    ?       ?       ?
+    n=5   126   1882192  ?       ?       ?
     n=6   306   ?        ?       ?       ?
     n=7   738   ?        ?       ?       ?
 */
@@ -38,6 +40,7 @@
 #include <cstdlib>
 #include <mutex>
 #include <numeric>
+#include <set>
 #include <string>
 #include <thread>
 #include <unordered_set>
@@ -145,16 +148,15 @@ Language language_recognized_by(const DFA& d, const std::vector<Input>& inputs, 
   return lang;
 }
 
-Language lexically_first_language_recognized_by(const DFA& d, const std::vector<Input>& inputs, const std::vector<std::vector<int>>& permutations) {
-  std::string smallest = "x";
+Language set_of_languages_recognized_by(const DFA& d, const std::vector<Input>& inputs, const std::vector<std::vector<int>>& permutations) {
+  std::set<std::string> langs;
   for (auto&& p : permutations) {
     std::string lang = language_recognized_by(d, inputs, p.data());
-    if (lang < smallest) {
-      smallest = std::move(lang);
-    }
+    langs.insert(std::move(lang));
   }
-  assert(smallest.size() == inputs.size());
-  return smallest;
+  std::string r;
+  for (auto&& lang : langs) r += lang;
+  return r;
 }
 
 std::vector<Input> generate_inputs(int len) {
@@ -221,7 +223,7 @@ int main(int argc, char **argv) {
       all_dfas<MAXN>(n, n, i, [&](DFA& d) {
         assert(d.nstates_ == n);
         assert(d.accepting_ == i);
-        auto lang = lexically_first_language_recognized_by(d, all_inputs, all_alphabet_permutations);
+        auto lang = set_of_languages_recognized_by(d, all_inputs, all_alphabet_permutations);
         local_langs.insert(std::move(lang));
       });
       auto lk = std::lock_guard<std::mutex>(m);
