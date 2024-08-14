@@ -12,6 +12,9 @@
 import matplotlib
 import matplotlib.pyplot as plt
 
+MAXX = 40
+MAXY = 10
+
 def point_is_on_line(p0, l):
   p1 = l[0]
   p2 = l[1]
@@ -55,6 +58,8 @@ def draw_plot(points, lines):
   plt.clf()
   plt.gca().xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
   plt.gca().yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
+  plt.gca().set_xlim([0,MAXX])
+  plt.gca().set_ylim([0,MAXY])
   plt.gca().set_prop_cycle(None)
   for line in lines:
     p = [p for p in points if point_is_on_line(p, line)][0]
@@ -67,7 +72,7 @@ def draw_plot(points, lines):
 if __name__ == '__main__':
   points = [(0,0), (1,1)]
   current = 2
-  for i in range(100):
+  for i in range(MAXX):
     lines = lines_through_points(points, current+1)
     draw_plot(points, lines)
     current = len(lines)
