@@ -1,3 +1,4 @@
+// g++ pangram.cpp -O2 -I sparse-map/include/ -std=c++20 -DUSE_TSL=1 -march=native -mtune=native
 
 #include <array>
 #include <cassert>
@@ -207,41 +208,89 @@ std::string to_sentence4(const Inventory& inventory) {
   return ret;
 }
 
-std::string to_sentence5(const Inventory& inventory) {
-  auto d = d_from_inventory(inventory);
-  std::string ret = "icontain";
-  int everything_else_count = 0;
+template<class D>
+static int everything_else_count_from_d(const D& d, const char *rejects) {
+  int ret = 0;
   size_t bestsize = 0;
   for (size_t count=0; count < d.size(); ++count) {
     const auto& chars = d[count];
-    if (chars.find_first_of("bdjkmpqz") != std::string::npos) {
-      // These letters (plus A and C) never appear in a number, so we can't put any
-      // of them into the "everything else" bucket because then they won't be mentioned
-      // in the pangram at all.
+    if (chars.find_first_of(rejects) != std::string::npos) {
+      // The letters ABCDJKMPQZ never appear in a number, so we can't
+      // put any of them into the "everything else" bucket because then
+      // they won't appear in the pangram at all. That is, unless they
+      // appear in the fixed pattern. So, let our caller tell us what
+      // letters won't appear outside the pattern.
     } else if (chars.size() > bestsize) {
-      everything_else_count = count;
+      ret = count;
       bestsize = chars.size();
     }
   }
+  return ret;
+}
+
+std::string to_sentence5(const Inventory& inventory) {
+  auto d = d_from_inventory(inventory);
+  int everything_else_count = everything_else_count_from_d(d, "abcdjkmpqz");
+  std::string ret = "iuse";
   for (size_t count=0; count < d.size(); ++count) {
     if (count == everything_else_count) {
       continue;
     }
     const auto& chars = d[count];
     if (!chars.empty()) {
-      ret += numbers[count];
       if (chars.size() >= 2) {
-        ret += "ofand";
+        ret += "and";
       }
       ret += chars;
-      if (chars.size() == 1 && count >= 2) {
-        ret += 's';
+      if (count == 1) {
+        ret += "once";
+      } else if (count == 2) {
+        ret += "twice";
+      } else {
+        ret += numbers[count];
+        ret += "times";
       }
     }
   }
   ret += "and";
   ret += numbers[everything_else_count];
   ret += "ofeverythingelse";
+  return ret;
+}
+
+std::string to_sentence6(const Inventory& inventory) {
+  auto d = d_from_inventory(inventory);
+  int everything_else_count = everything_else_count_from_d(d, "abcdjkmpqz");
+  std::string ret = "iuse";
+  for (size_t count=0; count < d.size(); ++count) {
+    if (count == everything_else_count) {
+      continue;
+    }
+    const auto& chars = d[count];
+    if (!chars.empty()) {
+      if (chars.size() >= 2) {
+        ret += "and";
+      }
+      ret += chars;
+      if (count == 1) {
+        ret += "once";
+      } else if (count == 2) {
+        ret += "twice";
+      } else {
+        ret += numbers[count];
+        if (chars.size() >= 2) {
+          ret += "times";
+        } else {
+          ret += 's';
+        }
+      }
+    }
+  }
+  ret += "and";
+  ret += numbers[everything_else_count];
+  ret += "oftheother";
+  ret += numbers[d[everything_else_count].size()];
+  ret += "letters";
   return ret;
 }
 
@@ -260,8 +309,8 @@ int main() {
 
   {
     // Gilles Esposito-Farese, 1998; Lee Sallows, 2019(?)
-    std::string sentence = "one a one b one c one d twenty-eight e seven f five g five h eight i one j one k \
-      one l one m eighteen n eighteen o one p one q four r two s ten t four u five v four w one x two y one z";
+    std::string sentence = "one a one b one c one d twenty-eight e seven f five g five h eight i one j one k"
+      " one l one m eighteen n eighteen o one p one q four r two s ten t four u five v four w one x two y one z";
     Inventory inventory = to_inventory(sentence);
     assert(inventory == to_inventory(to_sentence1(inventory)));
   }
@@ -299,8 +348,24 @@ int main() {
     assert(inventory == to_inventory(to_sentence4(inventory)));
   }
 
+  {
+    // Arthur O'Dwyer, 2025
+    std::string sentence = "i use b, j, k, p, q, x, and z once; g and l twice; c and w three times; h, u, and y four times;"
+      "a and d seven times; m ten times; s fourteen times; i seventeen times; n nineteen times; t twenty-one times;"
+      "e thirty-five times; and five of everything else";
+    Inventory inventory = to_inventory(sentence);
+    assert(inventory == to_inventory(to_sentence5(inventory)));
+  }
+  {
+    // Arthur O'Dwyer, 2025
+    std::string sentence = "i use b, j, k, p, q, and z once; g and y twice; c, l, u, w, and x three times;"
+      "f, m, and o five times; h and r six times; a and d eight times; four v's; sixteen t's;"
+      "twenty-five e's; and eleven of the other three letters";
+    Inventory inventory = to_inventory(sentence);
+    assert(inventory == to_inventory(to_sentence6(inventory)));
+  }
 
-#define to_sentence to_sentence5
+#define to_sentence to_sentence6
 
   auto start_time = std::chrono::steady_clock::now();
 
