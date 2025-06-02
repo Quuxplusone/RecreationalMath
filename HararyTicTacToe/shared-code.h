@@ -117,6 +117,16 @@ struct Board {
     return minr;
   }
 
+  int number_of_xes() const {
+    int n = 0;
+    for (int j=0; j < B; ++j) {
+      for (int i=0; i < B; ++i) {
+        n += (cells_[j][i] == 1);
+      }
+    }
+    return n;
+  }
+
   void apply_move(Move m, int who) {
     assert(0 <= m && m <= B*B);
     assert(who == 1 || who == 2);

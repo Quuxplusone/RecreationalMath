@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <unordered_map>
 #include "./shared-code.h"
@@ -61,7 +62,7 @@ Move get_ai_move(const Oracle& oracle, const Board& b) {
   return -1;
 }
 
-bool play_game(Oracle& oracle, Oracle& how_you_moved) {
+bool play_game(int n_omino, Oracle& oracle, Oracle& how_you_moved) {
   Board b;
   bool is_first_move = true;
   Board previous_board;
@@ -87,12 +88,14 @@ bool play_game(Oracle& oracle, Oracle& how_you_moved) {
         oracle.add_response(b, m);
       } else {
         how_you_moved.add_response(b, m);
-        printf("If this move created a win for Player 1, say 'Y'.\n");
-        static char line[1000];
-        fgets(line, 1000, stdin);
-        if (line[0] == 'y' || line[0] == 'Y') {
-          oracle.add_response(b, m);
-          return true;
+        if (b.number_of_xes() + 1 >= n_omino) {
+          printf("If this move created a win for Player 1, say 'Y'.\n");
+          static char line[1000];
+          fgets(line, 1000, stdin);
+          if (line[0] == 'y' || line[0] == 'Y') {
+            oracle.add_response(b, m);
+            return true;
+          }
         }
       }
     }
@@ -117,13 +120,22 @@ bool play_game(Oracle& oracle, Oracle& how_you_moved) {
   }
 }
 
-int main() {
+int main(int argc, char **argv) {
+  if (argc != 3) {
+    printf("Usage: ./make-oracle 4 oracle.foo-tetromino-b%d-m42.txt", B);
+    printf("  The first argument is the (minimum) number of cells to make a win.\n");
+    printf("  The second argument is the name of the oracle file. I'll overwrite it as I run.\n");
+    exit(1);
+  }
+  int n_omino = atoi(argv[1]);
+  assert(2 <= n_omino && n_omino <= (B*B + 1) / 2);
+
   Oracle oracle;
-  oracle.read_compressed_from_file("oracle.in.txt");
+  oracle.read_compressed_from_file(argv[2]);
   Oracle how_you_moved;
   while (true) {
-    bool play_again = play_game(oracle, how_you_moved);
-    oracle.write_compressed_to_file("oracle.out.txt");
+    bool play_again = play_game(n_omino, oracle, how_you_moved);
+    oracle.write_compressed_to_file(argv[2]);
     if (!play_again) {
       break;
     }

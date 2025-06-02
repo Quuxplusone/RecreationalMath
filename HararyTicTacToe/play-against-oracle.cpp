@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <unordered_map>
 #include "./shared-code.h"
@@ -82,7 +83,10 @@ bool play_game(Oracle& oracle) {
 }
 
 int main(int argc, char **argv) {
-  assert(argc == 2);
+  if (argc != 2) {
+    printf("Usage: ./play-against-oracle oracle.foo-tetromino-b%d-m42.txt\n", B);
+    exit(1);
+  }
   Oracle oracle;
   oracle.read_compressed_from_file(argv[1]);
   while (true) {
