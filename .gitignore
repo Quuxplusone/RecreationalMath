@@ -1,4 +1,6 @@
 a.out
 __pycache__/
+/HararyTicTacToe/compress-oracle
+/HararyTicTacToe/decompress-oracle
 /HararyTicTacToe/make-oracle
 /HararyTicTacToe/play-against-oracle

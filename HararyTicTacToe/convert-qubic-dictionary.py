@@ -1,6 +1,6 @@
 import sys
 
-# tail +52 qubic.dictionary | python convert-qubic-dictionary.py | python simple-compress-dictionary.py | sort > qubic.txt
+# tail +52 qubic.dictionary | python convert-qubic-dictionary.py | python simple-compress-oracle.py | sort > oracle.qubic.txt
 
 for line in sys.stdin.readlines():
   parts = line.split()

@@ -1,0 +1,17 @@
+.....X..........
+..X..OxOoOxOOOOO
+.....OOoXxxOOOOO
+....XxxO...Oo..O
+...O..O.XxxOo..O
+..X..OxO.OxOoOOO
+.........Xx...OO
+......O.XxxO.oOO
+.....Xx.....o...
+.....Oo.XxxO..OO
+.X...x.o.x.OOOOO
+....Xxx.o..o....
+.....XOO.x.O....
+......X..Ox.OO..
+......OOoxxX....
+........XxxO..oO
+........Xxxo...o

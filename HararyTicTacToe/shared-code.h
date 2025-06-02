@@ -160,8 +160,10 @@ struct Oracle {
     FILE *fp = fopen(fname, "r");
     assert(fp != nullptr);
     char s[B*B + 10] = {};
-    int m = 0;
-    while (fscanf(fp, "%s %d", s, &m) == 2) {
+    while (fscanf(fp, "%s", s) == 1) {
+      assert(strchr(s, 'X') != nullptr);
+      int m = (strchr(s, 'X') - s);
+      s[m] = '.';
       Board b = Board::from_string(s);
       assert(b.canonical_rotation() == 0);
       dict_[s] = m;
@@ -173,7 +175,10 @@ struct Oracle {
     FILE *fp = fopen(fname, "w");
     assert(fp != nullptr);
     for (auto&& [s, m] : dict_) {
-      fprintf(fp, "%s %d\n", s.c_str(), m);
+      auto modified_s = s;
+      assert(modified_s[m] == '.');
+      modified_s[m] = 'X';
+      fprintf(fp, "%s\n", modified_s.c_str());
     }
     fclose(fp);
   }
@@ -182,18 +187,20 @@ struct Oracle {
     FILE *fp = fopen(fname, "r");
     assert(fp != nullptr);
     char s[B*B + 10] = {};
-    int m = 0;
-    while (fscanf(fp, "%s %d", s, &m) == 2) {
-      if (strchr(s, '*') == nullptr) {
+    while (fscanf(fp, "%s", s) == 1) {
+      assert(strchr(s, 'X') != nullptr);
+      int m = (strchr(s, 'X') - s);
+      s[m] = '.';
+      if (strchr(s, 'O') == nullptr) {
         dict_[s] = m;
         continue;
       }
       for (int i=0; i < B*B; ++i) {
-        if (s[i] != '*') continue;
-        std::string ss = s;
-        for (auto& c : ss) if (c == '*') c = '.';
-        ss[i] = 'o';
-        Board b = Board::from_string(ss.c_str());
+        if (s[i] != 'O') continue;
+        std::string modified_s = s;
+        for (auto& c : modified_s) if (c == 'O') c = '.';
+        modified_s[i] = 'o';
+        Board b = Board::from_string(modified_s.c_str());
         Rotation r = b.canonical_rotation();
         dict_[b.rotated(r).stringify()] = Board::rotated_move(m, r);
       }
@@ -214,20 +221,20 @@ struct Oracle {
           else return false;
         }
         if (ax == -1 || bx == -1) return false;
-        a[ax] = '*';
-        a[bx] = '*';
+        a[ax] = 'O';
+        a[bx] = 'O';
         has_wildcards = true;
         return true;
       } else {
         int bx = -1;
         for (int i=0; i < a.size(); ++i) {
           if (a[i] == b[i]) continue;
-          else if (a[i] == '*' && b[i] == '.') continue;
+          else if (a[i] == 'O' && b[i] == '.') continue;
           else if (a[i] == '.' && b[i] == 'o' && bx == -1) bx = i;
           else return false;
         }
         if (bx == -1) return false;
-        a[bx] = '*';
+        a[bx] = 'O';
         return true;
       }
     };
@@ -247,7 +254,9 @@ struct Oracle {
           ++it;
         }
       }
-      fprintf(fp, "%s %d\n", s.c_str(), m);
+      assert(s[m] == '.');
+      s[m] = 'X';
+      fprintf(fp, "%s\n", s.c_str());
     }
     fclose(fp);
   }
