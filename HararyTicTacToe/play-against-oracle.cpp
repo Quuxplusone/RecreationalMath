@@ -36,12 +36,13 @@ void play_game(const Oracle& oracle) {
   Board b;
   while (true) {
     // Player 1's turn
-    b = b.rotated(b.canonical_rotation());
-    Move m = oracle.move_for(b);
+    Rotation r = b.canonical_rotation();
+    Move m = oracle.move_for(b.rotated(r));
     if (m == -1) {
       printf("Uh-oh, my oracle is incomplete! You win by default!\n");
       return;
     }
+    m = Board::rotated_move(m, invert(r));
     b.apply_move(m, 1);
 
     // See whether we can handle another (arbitrary) move from Player 2.

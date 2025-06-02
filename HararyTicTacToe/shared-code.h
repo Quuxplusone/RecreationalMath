@@ -130,6 +130,7 @@ struct Board {
   void apply_move(Move m, int who) {
     assert(0 <= m && m <= B*B);
     assert(who == 1 || who == 2);
+    assert(cells_[m / B][m % B] == 0);
     cells_[m / B][m % B] = who;
   }
 
