@@ -6,19 +6,7 @@
 #include "./shared-code.h"
 
 Move get_human_move(const Board& b) {
-  printf("   ");
-  for (int i=0; i < B; ++i) {
-    printf("%c", 'A'+i);
-  }
-  printf("\n");
-  for (int j=0; j < B; ++j) {
-    printf("%2d ", 1+j);
-    for (int i=0; i < B; ++i) {
-      char who = b.cells_[j][i];
-      printf("%c", (who == 0) ? '.' : (who == 1) ? 'x' : 'o');
-    }
-    printf("\n");
-  }
+  display_board(b);
   char c = 0;
   int r = 0;
   while (true) {

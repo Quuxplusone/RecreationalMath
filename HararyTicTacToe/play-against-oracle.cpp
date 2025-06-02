@@ -6,19 +6,7 @@
 #include "./shared-code.h"
 
 Move get_human_move(const Board& b) {
-  printf("   ");
-  for (int i=0; i < B; ++i) {
-    printf("%c", 'A'+i);
-  }
-  printf("\n");
-  for (int j=0; j < B; ++j) {
-    printf("%2d ", 1+j);
-    for (int i=0; i < B; ++i) {
-      char who = b.cells_[j][i];
-      printf("%c", (who == 0) ? '.' : (who == 1) ? 'x' : 'o');
-    }
-    printf("\n");
-  }
+  display_board(b);
   char c = 0;
   int r = 0;
   while (true) {
@@ -44,24 +32,7 @@ Move get_human_move(const Board& b) {
   }
 }
 
-Move get_ai_move(const Oracle& oracle, const Board& b) {
-  for (int j=0; j < B; ++j) {
-    for (int i=0; i < B; ++i) {
-      if (b.cells_[j][i] != 0) continue;
-      Move m = j*B+i;
-      Board b2 = b;
-      b2.apply_move(m, 2);
-      if (oracle.move_for(b2) != -1) {
-        printf("AI rejecting move %c%d as already-explored...\n", 'A'+(m%B), 1+(m/B));
-        continue;
-      }
-      return m;
-    }
-  }
-  return -1;
-}
-
-bool play_game(Oracle& oracle) {
+void play_game(const Oracle& oracle) {
   Board b;
   while (true) {
     // Player 1's turn
@@ -69,14 +40,36 @@ bool play_game(Oracle& oracle) {
     Move m = oracle.move_for(b);
     if (m == -1) {
       printf("Uh-oh, my oracle is incomplete! You win by default!\n");
-      return false;
+      return;
     }
     b.apply_move(m, 1);
+
+    // See whether we can handle another (arbitrary) move from Player 2.
+    // If not, then either the game's over, or our oracle is incomplete.
+    bool game_seems_over = true;
+    for (int j=0; j < B; ++j) {
+      for (int i=0; i < B; ++i) {
+        if (b.cells_[j][i] != 0) continue;
+        Move m = j*B+i;
+        Board b2 = b;
+        b2.apply_move(m, 2);
+        game_seems_over = (oracle.move_for(b2) == -1);
+        goto break_loop;
+      }
+    }
+    break_loop: ;
+    if (game_seems_over) {
+      printf("I think I just won the game!\n");
+      printf("Either that, or my oracle is incomplete. Either way the game is over.\n\n");
+      display_board(b);
+      printf("\n");
+      return;
+    }
 
     // Player 2's turn
     m = get_human_move(b);
     if (m == -1) {
-      return false;
+      return;
     }
     b.apply_move(m, 2);
   }
@@ -89,10 +82,5 @@ int main(int argc, char **argv) {
   }
   Oracle oracle;
   oracle.read_compressed_from_file(argv[1]);
-  while (true) {
-    bool play_again = play_game(oracle);
-    if (!play_again) {
-      break;
-    }
-  }
+  play_game(oracle);
 }
