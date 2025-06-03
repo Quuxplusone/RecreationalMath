@@ -170,8 +170,14 @@ int main(int argc, char **argv) {
   int n_omino = atoi(argv[1]);
   assert(2 <= n_omino && n_omino <= (B*B + 1) / 2);
 
+  // We'd like a way to save off a "partial" oracle and "update" it as we go;
+  // but in order to do that, we'd need to know how far we explored the game tree,
+  // which requires searching the whole tree. What we have here now requires
+  // only *descending* the tree, skipping any branch that seems to have been
+  // explored: we have no notion that a branch might have been *partially* explored.
+  // Therefore, `oracle` is not loaded from the file; it starts off empty.
+  //
   Oracle oracle;
-  oracle.read_compressed_from_file(argv[2]);
   Oracle how_you_moved;
   while (true) {
     bool play_again = play_game(n_omino, oracle, how_you_moved);
