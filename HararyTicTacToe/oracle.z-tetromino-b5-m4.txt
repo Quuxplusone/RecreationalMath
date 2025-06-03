@@ -1,120 +1,179 @@
-.......xx***x*****o*o**** 3
-.......***.*xx*o*ox...... 19
-........o.*xx*o*x.******* 7
-....o...**.*x***xx**o.*** 21
-........xo..xx.o..******* 17
-........o.o.xx....x****** 7
-.........o.xx....****.*** 16
-......x**o*xx********o*** 5
-.......xx...x.*o..**.o.** 3
-.......*x.**xx.**o..o.... 9
-.......xx*..x.*..o.*o..** 3
-......***o*xx**.x*******o 15
-......*xx...x*.o....*.*o. 3
-....o.x....xx..*....*...o 5
-.......**o*xx**.xo******. 15
-.......xx.o.x.*...**.o.** 3
-.......ox.**xx***.**o**** 9
-.........*.xxo*ox........ 7
-......*.x.**xx.**.o.o.... 9
-......o.x...xx*....*o..** 9
-.......xx*..x.*....*o.o** 3
-......*xx***x*o**..*o*.** 3
-......***o*xx**.x.****o*. 15
-....*..*x.**xx*o*****o*** 9
-....o.......x..*xx..*o... 13
-......***o*xx**.x.o***.*. 15
-........x.**xx.**...o..o. 9
-....o*....*.x..*xx.....o. 21
-........x.**xx.**..oo.... 9
-........x..oxx.o.****.*** 9
-........*ooxx**.x..***.*. 15
-....*.xx.*..x..o........o 1
-......................... 12
-....*..*x.o.xx...*****o** 9
-....*..*x.o.xx...****o.** 9
-......xx.o..x.......o**** 1
-......**o***xx*o*.x.***** 19
-............x....**...**. 7
-........*o*xx..ox****.*** 7
-.......xx*..x...o..*o..** 3
-....o.....o.xx....x.***** 19
-.....***xo**xx..*...o.... 17
-....*..*x...xx*o*****.o** 9
-........x.o.xx..o****..*. 9
-......*xx***x*.*...oo*.** 3
-........x.o*xx**....o...* 9
-....*.***o.xx**.x..*o*.*. 15
-..........o.xxo...x****** 7
-....o.....o.x...xx....*.* 21
-........**..xx.o.*xo..... 7
-......**.o**xx*o*.x.***** 19
-....o......xx..ox.....*** 7
-........xoo.xx.......**** 17
-....*.**x.o*xx*..***...o* 9
-........x*..x**.****o**** 7
-........x.*.xx.*.oo...... 9
-......x..o.xx..o...**.*** 5
-......*xx***x*.*....o*.*o 3
-...........*xx*o*.******* 8
-....*.**x...xx*o****...o* 9
-........o*o*xx*.**x...... 19
-......***o.xx**.x..o.*.*. 15
-......x..o*xx.......*...o 5
-........x..*xx**o...o**.* 9
-...........xxoo.x.******* 7
-.......xx*o.x.*...**..o** 3
-.......**..xx*o.xo******* 15
-.....**xxo**x*.*....o*.*. 3
-....o.......x...x...o.... 11
-....o.....oxx...x......** 15
-.........*.xx.*......o... 6
-.........*o*xxo***x...... 19
-........x..oxx*.....o**.* 9
-...........xx*o**.***.*** 6
-....o......xx**.x.**o.*.* 15
-......x*.o.xx.*.*..*o.... 5
-............x...........o 6
-.......ox...xx.o..**....* 9
-........x...xx*o....o...* 9
-........o..xx...xo.o..... 15
-........x.o.xx.o..**..*** 17
-....o.......x..oxx....*.* 21
-.........oo*xx..**x...... 19
-........x.o.xx...*.o....* 9
-.........*..xx.o.*....... 18
-......xx.o*.x..*.......o. 1
-......*xx.o.x*......*..o. 3
-........*o.xxo*.x....*.*. 15
-....o......xx...x...o..o. 7
-......*xx..*x*......o*.o. 3
-........x.o*xx*..o......* 9
-....*.*.x...xx*o****....o 9
-.....o.xxo..x........*.*. 11
-......***o.xx.*.x....*.o. 15
-......xx.oo.x........**.* 1
-.....o...o..xx....x.***** 19
-....o.x....xx......oo.... 5
-....o.xx..*.x..*.......o. 1
-....oo..x...xx.........o. 9
-......xx.o..x..o.....**.. 1
-.....o..xo..xx.........o. 17
-.......xxo*.x..*.....o... 11
-......*.x...xx*o***o..... 9
-........x...xx*o*o....... 9
-.........o.xx...o........ 6
-........x...xx*o*.o...... 9
-...........xx.ooxo....... 7
-........oo.xx.*.x....*... 15
-............xx.o.ox.***** 7
-......o..o.xx...x....o... 15
-....oo......xx....x....o. 19
-......**x.o.xx....*.....o 9
-........x.o*xx*.*.......o 17
-........x.o*xx*.*.....o.. 17
-.........oo.xx....x****** 7
-.....*.xxo..x..*......o.. 3
-.......xx...x.*o..**..o.* 3
-........x.o*xx*.*....o... 17
-...........xx.o..o....... 16
-..........o.xxo.......... 8
+....oXx....xx..o.......OO
+...X...xxOOOxOOOOOoOoOOOO
+......OXoOOOxxOOOOxOoOOOO
+........oOOoxOO.OxxO.OOXO
+......OX.oOxxOO.xOOOOOOOo
+.......X....x....OO...OOO
+...X..Oxxo..xO..OO..o..OO
+...XO.OxxOOOxOOoOOOOOOOOo
+.....XxOOoOxxOOOOOOOOoOOO
+......OX.oOOxxOOoOxOOOOOO
+....O.OOxXoOxxOOOOOOOOOoO
+.......XOO.oxxOOOOxOOoOOO
+....O..XOO.OxxOoOOxOOOOoO
+......X.o..xx.....O...OOO
+.......o.oOOxX.Oxx..O....
+.X....xxOoOOxOOOOOOOoOOOO
+......O.o.OXxOOOoxxOOOOOO
+...X...xx.o.xo.........OO
+...X...xx.O.x.oO......o..
+.......Xo.OOxx.O..xo.....
+.....OOX.oOOxxOO.OxOoOOOO
+.......o...xx.oXxO.O....O
+......OXOoOxxO..xOoOOOOO.
+.......X.oOxxoO.xO.OOOOO.
+.......XOO.oxxOoOOxOO.O.O
+........o..Ox..OXx..O....
+......Xx.O..x.O....Oo...O
+......o.xX..xxO...OOo..OO
+.......OxXOOxxOoOOoOOOOOO
+........oOOOxXOOxxOOOOOoO
+.......OxX..xx.o...O...o.
+....O...oO.OxXOOxxOOoOO.O
+.......Xo.OxxOOOxOoOOOOOO
+.......oOO.OxxOOOOxXoOOOO
+.......OxXOOxxO.OOoOoOOOO
+...X..Oxx.OOxOO.OO.OoOOOo
+....O..X...oxxO.OOxOo.OOO
+.......XOO.oxxO.OOxO..OOo
+.......XoOOxxOOOxO.oOOOOO
+.......o.o.xx..XxO.O.....
+.......OxXOOxxOOOO.ooOOOO
+.......oOO.OxxOoOOxX.OOOO
+....O..X....xxOOOOxOooOOO
+....OXx..O.xx.......o...o
+.......oo..xx..Xx.OO.....
+.....Xx..o.xx..o...OO.OOO
+...X..Oxx.OOxOOOOO.OoOOo.
+....o.....OXxOOOOxxOoOO.O
+.........O.OxxOOoOX.OOOOO
+.......XO..xxOo.xOOO.o..O
+...X..OxxOoOx.O.OOOO.OOOo
+........xXo.xx..oOOOOOO.O
+....O..OO...xo..xx..oX...
+...X...xx.O.x..O...o..o..
+.........O.OxxOo.OX.OOOOO
+....o......Xx..o.xx..OOOO
+.......o...oxOO..xx....X.
+.....XxOOoOxxOO.OOOOo.OO.
+....o....O.OxXOOxxOOoOOOO
+...X.o.xxo..x.........OOO
+......OOoOOXxOO..xxOoOO.O
+....O..XOO..xxOoOOxOOOO.o
+.......XOOO.xxooOOxOOOO..
+....oXx...Oxx.......O..o.
+.....o..xo..xx...X..OOOOO
+....O..XOO..xx.oOOxOOOo..
+.....Xx..ooxx.........OOO
+.......XO..xxOoOxOOOO.OOo
+....o..X.O.xxOO.x.OOo.OOO
+.......OoOoXxOOO.xxO.OOOO
+.......oxX..xx.o...OOOO.O
+.......Xo..xxOO.xO..OOo.O
+.......XOoOxx.OOxo.OOOOO.
+....oO....OXx....xx....o.
+...XO.OxxOoOx.OOOOOO.OOo.
+.....o.X.o..xx....x..OOOO
+....o..X..O.xx.OO.x.o....
+........xX.oxx.OOO.o.OOOO
+.......XOOOoxxo.OOxO..OO.
+.......OxXOoxxO.....o....
+.......o.oOXx..O.xx.O....
+.......XoOOoxx..OOx...OO.
+........oO.oxXOOxxOO.OO.O
+....o.......x...Xx..o....
+......OOxo..xx...XOOo....
+.......X....xxO.OOxOo.OoO
+.......oxXO.xxO.OO..oOOOO
+........xX.oxxo..O...OOOO
+.......X.O.oxx..OoxO..OO.
+.......oO..XxOOo.xxO.....
+........OO.OxxO..OX.oOOOO
+...X..Oxx...xO...O.oo....
+.......X...xxOo.xOoOO.OO.
+.......Xo.O.xx.Oo.x..O...
+....o.....oXx....xx..OO.O
+.......XoO.xxO..x....o.OO
+........xXoOxxO..oOO.OO.O
+.......X....xxOOooxOOOOOO
+.......Xo.OxxO..xO..O..Oo
+......X....xxOoOO.O.OOOO.
+.......OX...xx....OOo....
+........xoo.xx...X...OOOO
+.......XOOo.xxo.OOxOOOOOO
+........o..Oxo.OxxO..X.O.
+.......o...oxx..O.xX.O...
+........xXOoxx....O...o..
+........xo..xx.o.XOO.....
+............X............
+.......X....xxo.o.xOOOOOO
+.......o...XxOO..xxOo...O
+...XO.OxxO.OxOOoOOOO.OOo.
+...........xx.o.XO.O....O
+......X..o.xx...O.OOOOOOO
+........xXo.xx.o...O.OO.O
+.......X.O..xx.oOOxoOO...
+.......X....xxO.OOxOo.o.O
+.......o...OxXoOxx..O....
+...X...xx.o.x..OO.o..OO..
+.......X....xx.oOOx.o....
+....oO....O.xX.Oxx.....o.
+......O.xX..xxOoOO.o.OO.O
+...X..Oxx...xOo..O..o....
+.......X....xx..o.xOo...O
+.......X....xxO..Oxoo...O
+.......X...Oxx..o.xO.OoOO
+....o..X...xx..ox.......o
+.......X....xxO..Ox.o...o
+......OXOoO.xx.o.Ox..O...
+....o.....oxx..Xx.......o
+.......XO..xxooOxO.OO.OO.
+......o..o.Xx...Oxx..O...
+.......XOooOxx...OxO.OOOO
+.......Xo.o.xx.O.Ox..OOOO
+.......X....xx.Oo.xO.o.OO
+....o..X..O.xx.O..x..o...
+......o..o..xX..xxOOOOOOO
+........oO.XxOOo.xxO.OO.O
+......OOxXoOxxO...OOOOO.o
+....O..OxXoOxxO...OOOoO..
+......oX.o.xx...x..OOOOO.
+.X....xx.o..x..o.....OO..
+........xX.oxx..OOo..O.OO
+.......XoO.xxOO.x...o..O.
+...X...xxO.OxOOoOOoO.OO..
+....o..X..o.xx....x...OOO
+.......X.ooxx.O.x..O.....
+.......X.O.xx.oOxO.oO.OO.
+.......X.o.xx..Ox..oOOOO.
+......OXo...xx.o.Ox..O...
+...........oxxO..OX..OOOO
+.......X...Oxx..o.xo...OO
+.........o.xx...Xo.......
+.......XoOOxx.oOxO.....O.
+.......Xo..xxO..xO.....o.
+.......X....xx.o.ox..o...
+.......X...xx.oOxo..O.OO.
+........xXo.xxo.....O.O..
+.......X....xxo..ox.o....
+........X...xx.o..OO.....
+.X....xx.oo.x........OO..
+........o...x...oxX......
+...X...xx...x..o.o.o.....
+...X...xxoO.x..O......o..
+....O..OxXo.xx....OOO.o..
+......O.o...xX.OxxOo.....
+.......X.O.oxx....xO..oO.
+........oOO.xXOOxxo..OO.O
+.......o....xX..xx.oo....
+........X...xx..o.OO.....
+........X.o.xxo..........
+........oO..xXOoxx...OO.O
+....oo..xX..xx.........o.
+.......Xo.Oxxo..xO.......
+.......X...Oxx..o.x....oO
+.......o..oXx.o..xx......
+.......o....xo.oxx...X...
+.......X.O.oxx....xO...o.
+........X..oxx....OO.....
+.......X.o.oxx....xo.....

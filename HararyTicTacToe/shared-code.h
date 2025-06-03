@@ -62,7 +62,7 @@ struct Board {
     } else if (rotation == 1) {
       for (int j=0; j < B; ++j) {
         for (int i=0; i < B; ++i) {
-          b.cells_[j][i] = cells_[B-i-1][j];
+          b.cells_[j][i] = cells_[i][B-j-1];
         }
       }
     } else if (rotation == 2) {
@@ -74,7 +74,7 @@ struct Board {
     } else if (rotation == 3) {
       for (int j=0; j < B; ++j) {
         for (int i=0; i < B; ++i) {
-          b.cells_[j][i] = cells_[i][B-j-1];
+          b.cells_[j][i] = cells_[B-i-1][j];
         }
       }
     } else if (rotation == 4) {

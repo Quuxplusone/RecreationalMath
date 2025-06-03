@@ -10,7 +10,7 @@ def merge_two_lines(s, t):
         pass
       elif s[i] == 'O' and t[i] == '.':
         pass
-      elif s[i] == '.' and t[i] == 'o':
+      elif s[i] == '.' and t[i] == 'o' and ti is None:
         ti = i
       else:
         return None
@@ -19,9 +19,9 @@ def merge_two_lines(s, t):
     for i in range(n):
       if s[i] == t[i]:
         pass
-      elif s[i] == 'o' and t[i] == '.':
+      elif s[i] == 'o' and t[i] == '.' and si is None:
         si = i
-      elif s[i] == '.' and t[i] == 'o':
+      elif s[i] == '.' and t[i] == 'o' and ti is None:
         ti = i
       else:
         return None

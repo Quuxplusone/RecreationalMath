@@ -43,8 +43,9 @@ Patashnik's notation into my own notation, line for line.
 
 `simple-compress-oracle.py` is a greedy algorithm to compress
 a dictionary in my notation. Patashnik's dictionary compresses
-down to about 900 lines (more or perhaps fewer, depending on how
+down to about 951 lines (more or perhaps fewer, depending on how
 the lines are ordered, because of how the greedy algorithm works).
+`oracle.patashnik-qubic-partial.txt` is the result of that compression.
 
 (The resulting dictionary is in approximately the right format to be
 consumed by `play-against-oracle.cpp`, except that `play-against-oracle.cpp`

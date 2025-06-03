@@ -2,8 +2,49 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include <unordered_map>
+#include <unordered_set>
 #include "./shared-code.h"
+
+struct WinDetector {
+  void add(Board b, Move m) {
+    b.apply_move(m, 1);
+    std::string s = b.stringify();
+    for (char& ch : s) {
+      if (ch != 'x') {
+        ch = '.';
+      }
+    }
+    auto b2 = Board::from_string(s.c_str());
+    wins_.insert(b2.rotated(b2.canonical_rotation()).stringify());
+  }
+  Move move_for(const Board& b) const {
+    std::string s = b.stringify();
+    std::string ss = s;
+    for (char& ch : ss) {
+      if (ch != 'x') {
+        ch = '.';
+      }
+    }
+    for (int i=0; i < B*B; ++i) {
+      if (s[i] == '.') {
+        // If this is a legal move, and X went here...
+        ss[i] = 'x';
+        Board b2 = Board::from_string(ss.c_str());
+        auto it = wins_.find(b2.rotated(b2.canonical_rotation()).stringify());
+        // ...would it make a winning configuration?
+        if (it != wins_.end()) {
+          return i;
+        }
+        ss[i] = '.';
+      }
+    }
+    return -1;
+  }
+
+  std::unordered_set<std::string> wins_;
+};
+
+static WinDetector win_detector;
 
 Move get_human_move(const Board& b) {
   display_board(b);
@@ -58,6 +99,16 @@ bool play_game(int n_omino, Oracle& oracle, Oracle& how_you_moved) {
     // Player 1's turn
     b = b.rotated(b.canonical_rotation());
     Move m = oracle.move_for(b);
+    if (m == -1 && b.number_of_xes() + 1 >= n_omino) {
+      // Maybe we can move so as to create a winning configuration of Xs,
+      // even without knowing what the winning shape looks like in general.
+      printf("Consulting win detector (with %zu patterns)...\n", win_detector.wins_.size());
+      m = win_detector.move_for(b);
+      if (m != -1) {
+        oracle.add_response(b, m);
+        return true;
+      }
+    }
     if (m == -1) {
       m = how_you_moved.move_for(b);
     }
@@ -82,6 +133,7 @@ bool play_game(int n_omino, Oracle& oracle, Oracle& how_you_moved) {
           fgets(line, 1000, stdin);
           if (line[0] == 'y' || line[0] == 'Y') {
             oracle.add_response(b, m);
+            win_detector.add(b, m);
             return true;
           }
         }
