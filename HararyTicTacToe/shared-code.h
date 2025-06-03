@@ -32,6 +32,25 @@ inline Rotation invert(Rotation a) {
   return m[a];
 }
 
+static Move rotated_move(Move m, Rotation r) {
+  int j = m / B;
+  int i = m % B;
+  struct {
+    int j; int i;
+  } res;
+  switch (r) {
+    case 0: res = {j, i}; break;
+    case 1: res = {B-i-1, j}; break;
+    case 2: res = {B-j-1, B-i-1}; break;
+    case 3: res = {i, B-j-1}; break;
+    case 4: res = {j, B-i-1}; break;
+    case 5: res = {i, j}; break;
+    case 6: res = {B-j-1, i}; break;
+    case 7: res = {B-i-1, B-j-1}; break;
+  }
+  return (res.j * B + res.i);
+}
+
 struct Board {
   char cells_[B][B] = {};
 
@@ -55,7 +74,8 @@ struct Board {
     }
     return s;
   }
-  Board rotated(int rotation) const {
+
+  Board rotated(Rotation rotation) const {
     Board b = *this;
     if (rotation == 0) {
       // do nothing
@@ -104,6 +124,7 @@ struct Board {
     }
     return b;
   }
+
   Rotation canonical_rotation() const {
     int minr = 0;
     std::string mins = stringify();
@@ -127,6 +148,18 @@ struct Board {
     return n;
   }
 
+  Board without_p2() const {
+    Board b2 = *this;
+    for (int j=0; j < B; ++j) {
+      for (int i=0; i < B; ++i) {
+        if (cells_[j][i] == 2) {
+          b2.cells_[j][i] = 0;
+        }
+      }
+    }
+    return b2;
+  }
+
   void apply_move(Move m, int who) {
     assert(0 <= m && m <= B*B);
     assert(who == 1 || who == 2);
@@ -134,24 +167,12 @@ struct Board {
     cells_[m / B][m % B] = who;
   }
 
-  static Move rotated_move(Move m, Rotation r) {
-    int j = m / B;
-    int i = m % B;
-    struct {
-      int j; int i;
-    } res;
-    switch (r) {
-      case 0: res = {j, i}; break;
-      case 1: res = {B-i-1, j}; break;
-      case 2: res = {B-j-1, B-i-1}; break;
-      case 3: res = {i, B-j-1}; break;
-      case 4: res = {j, B-i-1}; break;
-      case 5: res = {i, j}; break;
-      case 6: res = {B-j-1, i}; break;
-      case 7: res = {B-i-1, B-j-1}; break;
-    }
-    return (res.j * B + res.i);
+  bool can_move(Move m) const {
+    assert(0 <= m && m <= B*B);
+    return (cells_[m / B][m % B] == 0);
   }
+
+  friend bool operator==(const Board&, const Board&) = default;
 };
 
 struct Oracle {
@@ -203,7 +224,7 @@ struct Oracle {
         modified_s[i] = 'o';
         Board b = Board::from_string(modified_s.c_str());
         Rotation r = b.canonical_rotation();
-        dict_[b.rotated(r).stringify()] = Board::rotated_move(m, r);
+        dict_[b.rotated(r).stringify()] = rotated_move(m, r);
       }
     }
     fclose(fp);
@@ -267,13 +288,13 @@ struct Oracle {
     std::string s = b.rotated(r).stringify();
     auto it = dict_.find(s);
     if (it == dict_.end()) return -1;
-    return Board::rotated_move(it->second, invert(r));
+    return rotated_move(it->second, invert(r));
   }
 
   void add_response(const Board& b, Move m) {
     Rotation r = b.canonical_rotation();
     std::string s = b.rotated(r).stringify();
-    dict_[s] = Board::rotated_move(m, r);
+    dict_[s] = rotated_move(m, r);
   }
 
   void remove_response(const Board& b) {

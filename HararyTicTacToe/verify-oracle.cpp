@@ -11,25 +11,13 @@ static Oracle verified_branches;
 
 struct WinDetector {
   void add(Board b) {
-    std::string s = b.stringify();
-    for (char& ch : s) {
-      if (ch != 'x') {
-        ch = '.';
-      }
-    }
-    auto b2 = Board::from_string(s.c_str());
+    auto b2 = b.without_p2();
     wins_.insert(b2.rotated(b2.canonical_rotation()).stringify());
   }
 
-  bool contains(Board b) const {
-    for (int j=0; j < B; ++j) {
-      for (int i=0; i < B; ++i) {
-        if (b.cells_[j][i] == 2) {
-          b.cells_[j][i] = 0;
-        }
-      }
-    }
-    std::string s = b.rotated(b.canonical_rotation()).stringify();
+  bool contains(const Board& b) const {
+    Board b2 = b.without_p2();
+    std::string s = b2.rotated(b2.canonical_rotation()).stringify();
     return wins_.find(s) != wins_.end();
   }
 
@@ -131,7 +119,7 @@ int main(int argc, char **argv) {
   if (argc != 3) {
     printf("Usage: ./verify-oracle 4 oracle.foo-tetromino-b%d-m42.txt", B);
     printf("  The first argument is the (minimum) number of cells to make a win.\n");
-    printf("  The second argument is the name of the oracle file. I'll overwrite it as I run.\n");
+    printf("  The second argument is the name of the oracle file. I'll overwrite it when I'm done, if any changes were made.\n");
     exit(1);
   }
   int n_omino = atoi(argv[1]);
