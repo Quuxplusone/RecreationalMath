@@ -1,5 +1,5 @@
 
-all: compress-oracle decompress-oracle make-oracle play-against-oracle
+all: compress-oracle decompress-oracle make-oracle play-against-oracle verify-oracle
 
 compress-oracle: compress-oracle.cpp shared-code.h
 	$(CXX) -std=c++20 -O2 $(CXXFLAGS) $< -o $@
@@ -13,7 +13,10 @@ make-oracle: make-oracle.cpp shared-code.h
 play-against-oracle: play-against-oracle.cpp shared-code.h
 	$(CXX) -std=c++20 -O2 $(CXXFLAGS) $< -o $@
 
+verify-oracle: verify-oracle.cpp shared-code.h
+	$(CXX) -std=c++20 -O2 $(CXXFLAGS) $< -o $@
+
 clean:
-	rm -f compress-oracle decompress-oracle make-oracle play-against-oracle
+	rm -f compress-oracle decompress-oracle make-oracle play-against-oracle verify-oracle
 
 .PHONY: clean
