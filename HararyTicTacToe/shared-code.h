@@ -205,11 +205,13 @@ struct Oracle {
     fclose(fp);
   }
 
-  void read_compressed_from_file(const char *fname) {
+  size_t read_compressed_from_file(const char *fname) {
     FILE *fp = fopen(fname, "r");
     assert(fp != nullptr);
+    size_t lines = 0;
     char s[B*B + 10] = {};
     while (fscanf(fp, "%s", s) == 1) {
+      lines += 1;
       assert(strchr(s, 'X') != nullptr);
       int m = (strchr(s, 'X') - s);
       s[m] = '.';
@@ -228,6 +230,7 @@ struct Oracle {
       }
     }
     fclose(fp);
+    return lines;
   }
 
   void write_compressed_to_file(const char *fname) const {
