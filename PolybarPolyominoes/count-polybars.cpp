@@ -1,3 +1,10 @@
+// Compile with:
+//   g++ -O2 -W -Wall -std=c++20 count-polybars.cpp -DBARSIZE=$p -DBARSPER=$n -DNDEBUG
+// By default we count into a red-black tree of strings, which wastes a lot of memory,
+// which means we spend a lot of time swapping and therefore waste a lot of time.
+// To count into a trie instead, clone github.com/Tessil/hat-trie and add the compiler flags:
+//   -DUSE_TSL_HTRIE -I ~/hat-trie/include
+
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
@@ -5,13 +12,13 @@
 #include <utility>
 
 #ifndef BARSIZE
- #define BARSIZE 5    // polybar order (3=I-tromino, 4=I-tetromino, etc.)
+ #define BARSIZE 5    // polybar order (3=I-tromino, 4=I-tetromino, etc.), i.e., "p"
 #endif
-#ifndef M
- #define M 5          // how many bars per polybar
+#ifndef BARSPER
+ #define BARSPER 5    // how many bars per polybar, i.e., "n"
 #endif
-#define GRIDSIZE (BARSIZE*2*M) // grid size
-#define SMALLGRIDSIZE (BARSIZE*M)
+#define GRIDSIZE (BARSIZE*2*BARSPER)
+#define SMALLGRIDSIZE (BARSIZE*BARSPER)
 
 using Rotation = int;
 
@@ -202,24 +209,29 @@ struct Board {
     return minb;
   }
 
-  std::string serialized() const {
+  std::string to_string() const {
     std::string s;
-    for (int j=minj_; j < maxj_; ++j) {
-      std::string row;
-      int blanks = 0;
-      for (int i=mini_; i < maxi_; ++i) {
-        if (cells_[j][i] == 0) {
-          blanks += 1;
-        } else {
-          row.append(blanks, '.');
-          row.push_back('X');
-          blanks = 0;
-        }
+    int bitcount = 4;
+    unsigned char value = 0;
+    auto output = [&](unsigned char digit) {
+      value <<= 2;
+      value |= digit;
+      bitcount -= 1;
+      if (bitcount == 0) {
+        s.push_back(value);
+        bitcount = 4;
+        value = 0;
+        return true;
       }
-      s += row;
-      s.push_back('/');
+      return false;
+    };
+    for (int j=minj_; j < maxj_; ++j) {
+      for (int i=mini_; i < maxi_; ++i) {
+        output(cells_[j][i] != 0);
+      }
+      output(2); // special "end of row" marker
     }
-    s.pop_back();
+    while (!output(3)) {}  // special "end of polyomino" padding
     return s;
   }
 
@@ -245,9 +257,12 @@ struct Board {
 using Board = Detail::Board<GRIDSIZE>;
 
 #ifdef PRINT_PIECES
-std::set<Detail::Board<SMALLGRIDSIZE>, Detail::Board<SMALLGRIDSIZE>::Less> g_seen[M];
+std::set<Detail::Board<SMALLGRIDSIZE>, Detail::Board<SMALLGRIDSIZE>::Less> g_seen[BARSPER];
+#elif defined(USE_TSL_HTRIE)
+#include <tsl/htrie_set.h>
+tsl::htrie_set<char> g_seen[BARSPER];
 #else
-std::set<std::string> g_seen[M];
+std::set<std::string> g_seen[BARSPER];
 #endif
 
 void accrete(const Board& b, int pieces_to_place)
@@ -255,7 +270,7 @@ void accrete(const Board& b, int pieces_to_place)
 #ifdef PRINT_PIECES
   auto [it, inserted] = g_seen[pieces_to_place].insert( b.normalized() );
 #else
-  auto [it, inserted] = g_seen[pieces_to_place].insert( b.normalized().serialized() );
+  auto [it, inserted] = g_seen[pieces_to_place].insert( b.normalized().to_string() );
 #endif
 
   if (inserted && pieces_to_place >= 1) {
@@ -278,9 +293,9 @@ void accrete(const Board& b, int pieces_to_place)
 int main() {
   Board b;
   b.accrete_polybar<false>(GRIDSIZE/2, GRIDSIZE/2, true);
-  accrete(b, M-1);
-  for (int i=0; i < M; ++i) {
-    printf("Accreting %d %d-bars: found %zu free polybars\n", M-i, BARSIZE, g_seen[i].size());
+  accrete(b, BARSPER-1);
+  for (int i=0; i < BARSPER; ++i) {
+    printf("Accreting %d %d-bars: found %zu free polybars\n", BARSPER-i, BARSIZE, g_seen[i].size());
 #ifdef PRINT_PIECES
     for (const auto& elt : g_seen[i]) elt.print();
 #endif

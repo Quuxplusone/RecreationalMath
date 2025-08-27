@@ -46,20 +46,35 @@ There are 55 tribars of order 3:
 
 The total count of $$n$$-bars of order $$p$$ is:
 
-          n=1   2    3      4        5         6         7          8         9    10
-     monobars  tribars       pentabars           heptabars             nonabars
-           dibars   tetrabars           hexabars             octabars        decabars
+          n=1   2    3      4        5         6          7          8         9         10
+     monobars  tribars       pentabars            heptabars             nonabars
+           dibars   tetrabars           hexabars              octabars             decabars
 
-    p=1:    1   1    2      5       12        35       108        369      1285  4655
-      2:    1   4   23    211     2227     25824    310242    3818983  47752136
-      3:    1   6   55    833    14378    269710   5221076  103352306
-      4:    1   7   93   1973    47161   1204744  31711028
-      5:    1   9  144   3913   118842   3851349
+    p=1:    1   1    2      5       12        35        108        369      1285       4655
+      2:    1   4   23    211     2227     25824     310242    3818983  47752136  604425323
+      3:    1   6   55    833    14378    269710    5221076  103352306
+      4:    1   7   93   1973    47161   1204744   31711028
+      5:    1   9  144   3913   118842   3851349  128587175
       6:    1  10  204   6809   252797   9951844
       7:    1  12  277  10938   478377  22178331
-      8:    1  13  359  16427   830085
+      8:    1  13  359  16427   830085  44325651
       9:    1  15  454  23577  1348694
      10:    1  16  558  32491  2079909
+
+On my laptop computing these numbers took this many seconds (CPU-bound for small numbers,
+becoming RAM/swap-bound for the larger numbers). "-" means less than one second:
+
+          n=1  2  3  4   5      6       7      8      9      10
+    p=1:    -  -  -  -   -      -       -      -      -       -
+      2:    -  -  -  -   -      -       2     32    538   18847
+      3:    -  -  -  -   -      2      57   1563      .       .
+      4:    -  -  -  -   -     14       .      .      .       .
+      5:    -  -  -  -   2     69    3380      .      .       .
+      6:    -  -  -  -   4    248       .      .      .       .
+      7:    -  -  -  -  11      .       .      .      .       .
+      8:    -  -  -  -  23   1934       .      .      .       .
+      9:    -  -  -  -  48      .       .      .      .       .
+     10:    -  -  -  1  90      .       .      .      .       .
 
 ---
 
