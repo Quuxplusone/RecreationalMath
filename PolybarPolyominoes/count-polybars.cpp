@@ -9,6 +9,7 @@
 #include <cassert>
 #include <cstdio>
 #include <set>
+#include <string>
 #include <utility>
 
 #ifndef BARSIZE
@@ -261,6 +262,9 @@ std::set<Detail::Board<SMALLGRIDSIZE>, Detail::Board<SMALLGRIDSIZE>::Less> g_see
 #elif defined(USE_TSL_HTRIE)
 #include <tsl/htrie_set.h>
 tsl::htrie_set<char> g_seen[BARSPER];
+#elif defined(USE_UNORDERED_SET)
+#include <unordered_set>
+std::unordered_set<std::string> g_seen[BARSPER];
 #else
 std::set<std::string> g_seen[BARSPER];
 #endif
